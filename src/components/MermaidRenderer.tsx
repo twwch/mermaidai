@@ -137,7 +137,6 @@ export function MermaidRenderer({
         if (containerRef.current) {
           containerRef.current.innerHTML = '';
         }
-        setError(null);
         // 清理旧的pan-zoom实例
         if (panZoomInstance.current) {
           panZoomInstance.current.destroy();
@@ -147,7 +146,6 @@ export function MermaidRenderer({
       }
 
       try {
-        setError(null);
         // 清理旧的pan-zoom实例
         if (panZoomInstance.current) {
           panZoomInstance.current.destroy();
@@ -322,7 +320,7 @@ export function MermaidRenderer({
   return (
     <div className={`mermaid-container relative ${className}`}>
       {/* 控制按钮组 */}
-      {!error && code.trim() && (
+      {code.trim() && (
         <div className="absolute top-4 left-4 z-10 flex gap-2">
           {/* 布局切换按钮 */}
           <div className="relative">
@@ -486,7 +484,7 @@ export function MermaidRenderer({
       )}
 
       {/* 缩放控制按钮 */}
-      {!error && code.trim() && (
+      {code.trim() && (
         <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 bg-white rounded-lg shadow-lg border border-gray-200 p-2">
           <button
             onClick={handleZoomIn}
