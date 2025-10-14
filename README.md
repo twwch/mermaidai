@@ -5,20 +5,26 @@
 ## 功能特性
 
 - ✨ **AI 生成**: 使用 Google Gemini AI 根据自然语言描述生成 Mermaid 流程图
-- 🎨 **实时预览**: 左侧编辑器,右侧实时渲染预览
+- 🎨 **实时预览**: 左侧编辑器(30%),右侧实时渲染预览(70%)
 - 💬 **AI 对话微调**: 通过对话的方式让 AI 帮你调整流程图
 - 📚 **项目管理**: 支持创建多个项目,每个项目包含多个流程图
-- ⏱️ **历史记录**: 记录每次修改的历史,形成时间轴
+- ⏱️ **历史记录**: 记录每次修改的历史,支持代码/预览切换和版本恢复
+- 🎭 **主题切换**: 支持 5 种内置主题 (default, neutral, dark, forest, base)
+- 📐 **布局引擎**: 支持 Dagre 和 ELK 两种布局引擎
+- 🔍 **缩放平移**: 支持图表缩放、平移和适应屏幕
+- 📥 **多格式导出**: 支持导出 PNG、SVG、MMD 格式
 - 🔐 **Google 登录**: 使用 Google OAuth 快速登录
 - ☁️ **云端存储**: 使用 Supabase 存储所有数据
-- 📥 **导出功能**: 导出 Mermaid 源代码文件
+- 💾 **配置持久化**: 每个流程图独立保存布局和主题配置
 
 ## 技术栈
 
 - **前端框架**: React 18 + TypeScript + Vite
 - **UI 样式**: Tailwind CSS
 - **代码编辑器**: Monaco Editor
-- **图表渲染**: Mermaid.js
+- **图表渲染**: Mermaid.js v11
+- **布局引擎**: Dagre + ELK (@mermaid-js/layout-elk)
+- **图表交互**: svg-pan-zoom
 - **状态管理**: Zustand
 - **数据库**: Supabase (PostgreSQL)
 - **认证**: Supabase Auth (Google OAuth)
