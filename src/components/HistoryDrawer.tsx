@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { X, Clock, User, RotateCcw, Code, Eye, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import mermaid from 'mermaid';
@@ -37,13 +37,15 @@ function SafeMermaidRenderer({
 
         try {
         // 清空容器
-        containerRef.current.innerHTML = '';
+        if (containerRef.current) {
+          containerRef.current.innerHTML = '';
+        }
 
         // 生成唯一 ID
         const id = `mermaid-history-${itemId}`;
 
         // 根据布局类型配置参数
-        const config = layout === 'elk'
+        const config: any = layout === 'elk'
           ? {
               startOnLoad: false,
               theme: theme,
@@ -101,7 +103,7 @@ function SafeMermaidRenderer({
             };
 
         // 每次渲染前都重新初始化配置
-        mermaid.initialize(config);
+        mermaid.initialize(config as any);
 
         // 渲染图表
         const { svg } = await mermaid.render(id, code);

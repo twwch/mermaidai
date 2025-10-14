@@ -9,6 +9,35 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      users: {
+        Row: {
+          id: string
+          google_id: string
+          email: string
+          name: string | null
+          picture: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          google_id: string
+          email: string
+          name?: string | null
+          picture?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          google_id?: string
+          email?: string
+          name?: string | null
+          picture?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
       projects: {
         Row: {
           id: string
@@ -41,6 +70,8 @@ export interface Database {
           project_id: string
           name: string
           mermaid_code: string
+          layout: string
+          theme: string
           created_at: string
           updated_at: string
         }
@@ -49,6 +80,8 @@ export interface Database {
           project_id: string
           name: string
           mermaid_code: string
+          layout?: string
+          theme?: string
           created_at?: string
           updated_at?: string
         }
@@ -57,6 +90,8 @@ export interface Database {
           project_id?: string
           name?: string
           mermaid_code?: string
+          layout?: string
+          theme?: string
           created_at?: string
           updated_at?: string
         }
@@ -68,6 +103,8 @@ export interface Database {
           mermaid_code: string
           user_prompt: string | null
           ai_response: string | null
+          layout: string
+          theme: string
           created_at: string
         }
         Insert: {
@@ -76,6 +113,8 @@ export interface Database {
           mermaid_code: string
           user_prompt?: string | null
           ai_response?: string | null
+          layout?: string
+          theme?: string
           created_at?: string
         }
         Update: {
@@ -84,6 +123,8 @@ export interface Database {
           mermaid_code?: string
           user_prompt?: string | null
           ai_response?: string | null
+          layout?: string
+          theme?: string
           created_at?: string
         }
       }

@@ -5,7 +5,7 @@ import { ChatPanel } from './ChatPanel';
 import { HistoryDrawer } from './HistoryDrawer';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
-import { generateMermaidCode, refineMermaidCode } from '../services/ai';
+import { refineMermaidCode } from '../services/ai';
 import { Save, Download, History, Sparkles } from 'lucide-react';
 
 export function DiagramEditor() {
@@ -35,6 +35,7 @@ export function DiagramEditor() {
       setIsSaving(true);
       const { error } = await supabase
         .from('diagrams')
+        // @ts-ignore - Supabase type inference issue
         .update({
           mermaid_code: code,
           layout: currentLayout,
@@ -61,7 +62,7 @@ export function DiagramEditor() {
           user_prompt: '手动保存',
           layout: currentLayout,
           theme: currentTheme,
-        })
+        } as any)
         .select()
         .single();
 
@@ -96,6 +97,7 @@ export function DiagramEditor() {
       // 保存到数据库
       await supabase
         .from('diagrams')
+        // @ts-ignore - Supabase type inference issue
         .update({
           mermaid_code: newCode,
           layout: currentLayout,
@@ -114,7 +116,7 @@ export function DiagramEditor() {
           ai_response: '已生成新版本',
           layout: currentLayout,
           theme: currentTheme,
-        })
+        } as any)
         .select()
         .single();
 

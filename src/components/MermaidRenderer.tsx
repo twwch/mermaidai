@@ -44,7 +44,7 @@ export function MermaidRenderer({
     mermaid.registerLayoutLoaders(elk);
 
     // 根据布局类型配置不同的参数
-    const config = layout === 'elk'
+    const config: any = layout === 'elk'
       ? {
           // ELK 自适应布局
           flowchart: {
@@ -77,7 +77,7 @@ export function MermaidRenderer({
 
     mermaid.initialize({
       startOnLoad: false,
-      theme: theme,  // 使用用户选择的主题
+      theme: theme as any,  // 使用用户选择的主题
       securityLevel: 'loose',
       logLevel: 'error',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -127,7 +127,7 @@ export function MermaidRenderer({
         successBkgColor: '#e8f5e9',
         successTextColor: '#2e7d32',
       }}),
-    });
+    } as any);
   }, [layout, theme]);
 
   useEffect(() => {
@@ -174,8 +174,7 @@ export function MermaidRenderer({
               minZoom: 0.1,
               maxZoom: 10,
               zoomScaleSensitivity: 0.3,
-              initialZoom: 1, // 初始缩放比例为1(100%)
-            });
+            } as any);
           }
         }
       } catch (err) {

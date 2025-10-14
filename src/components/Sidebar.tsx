@@ -88,7 +88,7 @@ export function Sidebar() {
           user_id: user!.id,
           name,
           description: '',
-        })
+        } as any)
         .select()
         .single();
 
@@ -125,7 +125,7 @@ export function Sidebar() {
           project_id: currentProject.id,
           name: prompt.slice(0, 50),
           mermaid_code: code,
-        })
+        } as any)
         .select()
         .single();
 
@@ -141,7 +141,9 @@ export function Sidebar() {
         success('流程图创建成功!');
 
         // 添加历史记录
+        // @ts-ignore - Supabase type inference issue
         await supabase.from('diagram_history').insert({
+          // @ts-ignore - Supabase type inference issue
           diagram_id: data.id,
           mermaid_code: code,
           user_prompt: prompt,

@@ -46,16 +46,19 @@ export function useAuth() {
       if (existingUsers && existingUsers.length > 0) {
         // 用户已存在,更新信息
         const existingUser = existingUsers[0];
+        // @ts-ignore - Supabase type inference issue
         console.log('User exists, updating:', existingUser.id);
 
-        const { data: updatedUser, error: updateError } = await supabase
+        const { data: updatedUser, error: updateError} = await supabase
           .from('users')
+          // @ts-ignore - Supabase type inference issue
           .update({
             email,
             name,
             picture,
             updated_at: new Date().toISOString(),
           })
+          // @ts-ignore - Supabase type inference issue
           .eq('id', existingUser.id)
           .select()
           .single();
@@ -76,7 +79,7 @@ export function useAuth() {
             email,
             name,
             picture,
-          })
+          } as any)
           .select()
           .single();
 
