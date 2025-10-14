@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -19,32 +19,87 @@ export function ProjectList() {
     projectId: null,
     projectName: '',
   });
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     loadProjects();
   }, [user]);
 
-  const loadProjects = async () => {
+  const loadProjects = async (pageNum: number = 0, append: boolean = false) => {
     if (!user) return;
 
-    setIsLoading(true);
+    if (!append) {
+      setIsLoading(true);
+      setPage(0);
+    }
+
     try {
+      const from = pageNum * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
       const { data, error } = await supabase
         .from('projects')
         .select('*')
         .eq('user_id', user.id)
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false })
+        .range(from, to);
 
       if (error) {
         console.error('Load projects error:', error);
         return;
       }
 
-      setProjects(data || []);
+      if (data) {
+        if (append) {
+          setProjects(prev => [...prev, ...data]);
+        } else {
+          setProjects(data);
+        }
+        setHasMore(data.length === PAGE_SIZE);
+      }
     } finally {
-      setIsLoading(false);
+      if (!append) {
+        setIsLoading(false);
+      }
     }
   };
+
+  const loadMore = async () => {
+    if (isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    const nextPage = page + 1;
+    setPage(nextPage);
+    await loadProjects(nextPage, true);
+    setIsLoadingMore(false);
+  };
+
+  // 使用 Intersection Observer 监听底部元素
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasMore || isLoadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      {
+        rootMargin: '200px', // 提前 200px 触发加载
+      }
+    );
+
+    observer.observe(loadMoreRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, isLoadingMore, page]);
 
   const handleCreateProject = async () => {
     if (!newProjectName.trim() || !user) return;
@@ -99,8 +154,8 @@ export function ProjectList() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 bg-white shadow-sm border-b border-gray-200 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -128,8 +183,8 @@ export function ProjectList() {
         </div>
       </header>
 
-      {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Content with top padding to account for fixed header */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-32">
         {/* Create Project Card */}
         <div className="mb-8">
           {isCreating ? (
@@ -195,41 +250,60 @@ export function ProjectList() {
             </div>
           </div>
         ) : projects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <div
-                key={project.id}
-                onClick={() => navigate(`/project/${project.id}`)}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer group relative"
-              >
-                <button
-                  onClick={(e) => handleDeleteProject(project.id, project.name, e)}
-                  className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  onClick={() => navigate(`/project/${project.id}`)}
+                  className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer group relative"
                 >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                  <button
+                    onClick={(e) => handleDeleteProject(project.id, project.name, e)}
+                    className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                    <Folder className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate mb-1">
-                      {project.name}
-                    </h3>
-                    {project.description && (
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {project.description}
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                      <Folder className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-gray-900 truncate mb-1">
+                        {project.name}
+                      </h3>
+                      {project.description && (
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {project.description}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-400 mt-2">
+                        更新于 {new Date(project.updated_at).toLocaleDateString('zh-CN')}
                       </p>
-                    )}
-                    <p className="text-xs text-gray-400 mt-2">
-                      更新于 {new Date(project.updated_at).toLocaleDateString('zh-CN')}
-                    </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {/* 加载更多触发器和指示器 */}
+            <div ref={loadMoreRef} className="w-full">
+              {isLoadingMore && (
+                <div className="flex items-center justify-center py-8">
+                  <ClipLoader size={40} color="#2563eb" />
+                  <p className="text-gray-600 ml-3">加载更多...</p>
+                </div>
+              )}
+
+              {/* 没有更多数据提示 */}
+              {!hasMore && projects.length >= PAGE_SIZE && (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">没有更多项目了</p>
+                </div>
+              )}
+            </div>
+          </>
         ) : (
           <div className="max-w-4xl mx-auto">
             {/* 欢迎区域 */}

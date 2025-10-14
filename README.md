@@ -94,7 +94,7 @@ npm run dev
 - **状态管理**: React Context API
 - **数据库**: Supabase (PostgreSQL)
 - **认证系统**: Google OAuth 2.0
-- **AI 引擎**: Google Gemini 2.0 Flash
+- **AI 引擎**: Google Gemini 2.5 Pro
 - **UI 组件**: Lucide React Icons、react-spinners
 
 ## 📁 项目结构

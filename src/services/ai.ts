@@ -90,7 +90,7 @@ export async function generateMermaidCode(
     throw new Error('Gemini API key not configured');
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
 
   let prompt: string;
   if (currentCode) {
