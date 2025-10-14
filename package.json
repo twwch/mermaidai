@@ -27,6 +27,8 @@
     "monaco-editor": "^0.54.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-router-dom": "^6.30.1",
+    "react-spinners": "^0.17.0",
     "react-split": "^2.0.14",
     "svg-pan-zoom": "^3.6.2",
     "zustand": "^5.0.8"

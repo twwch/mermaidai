@@ -1,7 +1,9 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Auth } from './components/Auth';
-import { Sidebar } from './components/Sidebar';
-import { DiagramEditor } from './components/DiagramEditor';
+import { ProjectList } from './pages/ProjectList';
+import { DiagramList } from './pages/DiagramList';
+import { DiagramEditorPage } from './pages/DiagramEditorPage';
 
 function App() {
   const { user, loading } = useAuth();
@@ -22,12 +24,19 @@ function App() {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden bg-gray-100">
-      <Sidebar />
-      <main className="flex-1 overflow-hidden">
-        <DiagramEditor />
-      </main>
-    </div>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <Routes>
+        <Route path="/" element={<ProjectList />} />
+        <Route path="/project/:projectId" element={<DiagramList />} />
+        <Route path="/project/:projectId/diagram/:diagramId" element={<DiagramEditorPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

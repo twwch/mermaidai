@@ -1,21 +1,38 @@
 # Mermaid AI - AI 驱动的流程图生成工具
 
-基于 AI 技术的 Mermaid 流程图创建和编辑工具,支持通过自然语言描述生成专业的流程图。
+基于 AI 技术的 Mermaid 流程图创建和编辑工具，支持通过自然语言描述生成专业的流程图。
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.1.0-blue)
 ![Node](https://img.shields.io/badge/node-22+-green)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ 功能特性
 
-- 🤖 **AI 生成**: 使用 Google Gemini AI 根据自然语言生成 Mermaid 流程图
-- 🎨 **实时预览**: 左侧代码编辑器,右侧实时渲染
-- 💬 **AI 对话微调**: 通过对话方式让 AI 调整流程图
-- 📚 **项目管理**: 支持多个项目,每个项目包含多个流程图
-- ⏱️ **历史记录**: 记录每次修改,形成版本时间轴
-- 🔐 **Google 登录**: 使用 Google OAuth 直接登录
-- ☁️ **云端存储**: 使用 Supabase 存储所有数据
-- 📥 **导出功能**: 导出 Mermaid 源代码文件
+### 核心功能
+- 🤖 **AI 智能生成**: 使用 Google Gemini AI 根据自然语言描述生成专业 Mermaid 流程图
+- 💬 **AI 对话微调**: 通过自然对话方式让 AI 调整和优化流程图
+- 🎨 **实时预览**: 代码编辑器与实时渲染同步，所见即所得
+- 🎭 **多主题支持**: Default、Neutral、Dark、Forest、Base 五种主题随心切换
+- 📐 **灵活布局**: 支持 TB（上下）、LR（左右）、BT（下上）、RL（右左）四种布局方向
+
+### 项目管理
+- 📚 **项目组织**: 创建多个项目空间，分类管理流程图
+- 🖼️ **缩略图预览**: 流程图列表显示实时渲染的缩略图
+- 🎯 **卡片式界面**: 现代化的卡片网格布局，一目了然
+- 🔍 **快速导航**: 三级导航结构（项目 → 流程图 → 编辑器）
+
+### 版本管理
+- ⏱️ **完整历史**: 自动记录每次修改，形成版本时间轴
+- 🔄 **一键回退**: 随时查看和恢复任意历史版本
+- 📝 **修改追踪**: 记录用户提示、AI 响应和代码变化
+
+### 用户体验
+- 🔐 **Google 登录**: 使用 Google OAuth 安全便捷登录
+- ☁️ **云端存储**: 使用 Supabase 可靠存储所有数据
+- 💾 **自动保存**: 实时保存编辑内容，不怕丢失
+- 📥 **导出功能**: 一键导出 Mermaid 源代码文件
+- 🎪 **美观对话框**: 现代化的确认对话框替代原生弹窗
+- 🌈 **友好空状态**: 新用户引导和功能介绍页面
 
 ## 🚀 快速开始
 
@@ -69,25 +86,42 @@ npm run dev
 
 ## 🏗️ 技术栈
 
-- **前端**: React 18 + TypeScript + Vite + Tailwind CSS
-- **编辑器**: Monaco Editor
-- **渲染**: Mermaid.js
-- **状态管理**: Zustand
+- **前端框架**: React 18 + TypeScript + Vite
+- **样式方案**: Tailwind CSS
+- **路由管理**: React Router v6
+- **代码编辑器**: Monaco Editor
+- **图表渲染**: Mermaid.js v11
+- **状态管理**: React Context API
 - **数据库**: Supabase (PostgreSQL)
-- **认证**: Google OAuth SDK
-- **AI**: Google Gemini 2.0 Flash
+- **认证系统**: Google OAuth 2.0
+- **AI 引擎**: Google Gemini 2.0 Flash
+- **UI 组件**: Lucide React Icons、react-spinners
 
 ## 📁 项目结构
 
 ```
 mermaidai/
 ├── src/
-│   ├── components/        # React 组件
-│   ├── hooks/            # React Hooks
-│   ├── lib/              # 第三方库配置
-│   ├── services/         # 业务服务
-│   ├── store/            # 状态管理
-│   └── types/            # TypeScript 类型
+│   ├── components/          # React 组件
+│   │   ├── Auth.tsx        # 登录组件
+│   │   ├── ChatPanel.tsx   # AI 对话面板
+│   │   ├── CodeEditor.tsx  # Monaco 代码编辑器
+│   │   ├── ConfirmDialog.tsx  # 确认对话框
+│   │   ├── HistoryDrawer.tsx  # 历史记录抽屉
+│   │   └── MermaidRenderer.tsx  # Mermaid 渲染器
+│   ├── contexts/            # React Context
+│   │   └── AuthContext.tsx # 全局认证状态
+│   ├── pages/               # 页面组件
+│   │   ├── ProjectList.tsx     # 项目列表页
+│   │   ├── DiagramList.tsx     # 流程图列表页
+│   │   └── DiagramEditorPage.tsx  # 编辑器页面
+│   ├── lib/                 # 第三方库配置
+│   │   ├── supabase.ts     # Supabase 客户端
+│   │   └── googleAuth.ts   # Google OAuth
+│   ├── services/            # 业务服务
+│   │   └── ai.ts           # AI 生成和微调
+│   └── types/               # TypeScript 类型
+│       └── database.ts     # 数据库类型定义
 ├── supabase-schema-new.sql  # 数据库架构
 ├── QUICKSTART_CHECKLIST.md  # 快速启动清单 ⭐
 ├── GOOGLE_AUTH_SETUP.md     # Google OAuth 设置指南
@@ -96,29 +130,64 @@ mermaidai/
 └── README.md                # 本文件
 ```
 
-## 🎯 使用示例
+## 🎯 使用指南
 
-### 创建流程图
+### 1️⃣ 创建项目
 
-1. 登录应用
-2. 创建新项目
-3. 点击"新建流程图"
-4. 输入描述,例如:
-   ```
-   创建一个用户注册登录流程图,包括:
-   - 输入用户名和密码
-   - 验证信息
-   - 成功则进入系统
-   - 失败则重新输入
-   ```
-5. AI 自动生成 Mermaid 代码和流程图
+首次登录会看到欢迎页面，点击"创建新项目"按钮：
+- 输入项目名称（如："电商系统设计"）
+- 项目将显示为卡片，点击进入
 
-### AI 微调
+### 2️⃣ 生成流程图
 
-使用 AI 助手对流程图进行修改:
-- "改成横向布局"
-- "添加一个忘记密码的分支"
-- "把菱形节点改成圆角矩形"
+在项目内点击"创建新流程图"，用自然语言描述你的需求：
+
+**示例 1 - 用户流程：**
+```
+创建一个用户注册登录流程图，包括：
+- 输入用户名和密码
+- 验证信息
+- 成功则进入系统
+- 失败则重新输入
+```
+
+**示例 2 - 业务流程：**
+```
+画一个订单处理流程，从下单到收货的完整过程
+```
+
+**示例 3 - 系统架构：**
+```
+展示一个微服务架构图，包括前端、网关、各个服务和数据库
+```
+
+### 3️⃣ AI 智能微调
+
+在编辑器中点击 AI 对话按钮，与 AI 互动修改流程图：
+
+- 💬 "改成横向布局"
+- 💬 "添加一个忘记密码的分支"
+- 💬 "把菱形节点改成圆角矩形"
+- 💬 "使用暗色主题"
+- 💬 "添加错误处理流程"
+
+### 4️⃣ 主题和布局
+
+右上角工具栏可以快速切换：
+- **主题**：Default（默认）、Neutral（中性）、Dark（暗色）、Forest（森林）、Base（基础）
+- **布局**：TB（上下）、LR（左右）、BT（下上）、RL（右左）
+
+### 5️⃣ 版本历史
+
+点击历史按钮查看所有修改记录：
+- 时间轴展示每次修改
+- 查看用户提示和 AI 响应
+- 一键恢复到任意历史版本
+
+### 6️⃣ 导出和保存
+
+- 💾 **自动保存**：修改后自动保存到云端
+- 📥 **导出代码**：点击导出按钮下载 `.mmd` 文件
 
 ## 📖 文档导航
 
@@ -130,15 +199,33 @@ mermaidai/
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 🐛 故障排查指南 |
 | [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) | 📊 项目技术架构 |
 
-## 🔄 最近更新 (v2.0.0)
+## 🔄 版本更新
 
+### v2.1.0 (2025-10-14)
+
+**UI/UX 重大改进：**
+- ✨ 全新卡片式界面布局，替代侧边栏设计
+- 🎨 美观的确认对话框，替代浏览器原生弹窗
+- 🖼️ 流程图列表显示缩略图预览，尊重用户设置的主题和布局
+- 🌈 新用户欢迎页面，展示核心功能介绍
+- 📚 空状态页面提供使用示例和引导
+
+**技术优化：**
+- ⚡ 使用 react-spinners 加载组件库
+- 🔧 优化缩略图渲染队列，防止冲突
+- 🎯 改进列表加载状态展示
+- 🐛 修复所有 TypeScript 构建错误
+
+### v2.0.0 (2025-10-13)
+
+**认证系统升级：**
 - ✅ 改用 Google OAuth 直接登录
 - ✅ 自定义 users 表存储用户数据
 - ✅ 简化登录流程
 - ✅ 改进会话管理
 - ✅ 端口改为 3000
 
-详情查看: [CHANGES.md](CHANGES.md)
+详情查看：[CHANGES.md](CHANGES.md)
 
 ## 🐛 故障排查
 
@@ -163,8 +250,30 @@ MIT License
 - 🐛 查看[故障排查](TROUBLESHOOTING.md)
 - 💬 提交 GitHub Issue
 
+## 🎨 界面预览
+
+### 项目列表页
+- 现代化卡片网格布局
+- 渐变色项目图标
+- 悬停显示删除按钮
+- 空状态展示功能介绍
+
+### 流程图列表页
+- 实时渲染的缩略图预览
+- 保持用户设置的主题和布局
+- 串行渲染队列，确保稳定性
+- AI 生成创建新流程图
+
+### 编辑器页面
+- Monaco 代码编辑器（左侧）
+- Mermaid 实时渲染（右侧）
+- AI 对话面板辅助修改
+- 历史版本时间轴
+- 主题和布局快速切换
+
 ---
 
-**当前版本**: v2.0.0
-**最后更新**: 2025-10-14
-**开发状态**: ✅ 生产就绪
+**当前版本**：v2.1.0
+**最后更新**：2025-10-14
+**开发状态**：✅ 生产就绪
+**构建状态**：✅ 通过所有测试

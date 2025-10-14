@@ -1,0 +1,319 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+import { FolderPlus, Folder, LogOut, Trash2, Sparkles } from 'lucide-react';
+import type { Project } from '../types';
+import { ClipLoader } from 'react-spinners';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+
+export function ProjectList() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; projectId: string | null; projectName: string }>({
+    isOpen: false,
+    projectId: null,
+    projectName: '',
+  });
+
+  useEffect(() => {
+    loadProjects();
+  }, [user]);
+
+  const loadProjects = async () => {
+    if (!user) return;
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        console.error('Load projects error:', error);
+        return;
+      }
+
+      setProjects(data || []);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateProject = async () => {
+    if (!newProjectName.trim() || !user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert({
+          user_id: user.id,
+          name: newProjectName,
+          description: '',
+        } as any)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setProjects([data, ...projects]);
+        setNewProjectName('');
+        setIsCreating(false);
+      }
+    } catch (error) {
+      console.error('Create project error:', error);
+      alert('创建项目失败');
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string, projectName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleteConfirm({ isOpen: true, projectId, projectName });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.projectId) return;
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', deleteConfirm.projectId);
+
+      if (error) throw error;
+
+      setProjects(projects.filter(p => p.id !== deleteConfirm.projectId));
+      setDeleteConfirm({ isOpen: false, projectId: null, projectName: '' });
+    } catch (error) {
+      console.error('Delete project error:', error);
+      alert('删除项目失败');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Mermaid AI</h1>
+              <p className="text-sm text-gray-600 mt-1">我的项目</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <img
+                  src={user?.picture || ''}
+                  alt={user?.name || ''}
+                  className="w-8 h-8 rounded-full"
+                />
+                <span>{user?.name}</span>
+              </div>
+              <button
+                onClick={signOut}
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                退出
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Create Project Card */}
+        <div className="mb-8">
+          {isCreating ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">创建新项目</h3>
+              <input
+                type="text"
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                placeholder="项目名称"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreateProject();
+                  if (e.key === 'Escape') {
+                    setIsCreating(false);
+                    setNewProjectName('');
+                  }
+                }}
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCreateProject}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  创建
+                </button>
+                <button
+                  onClick={() => {
+                    setIsCreating(false);
+                    setNewProjectName('');
+                  }}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsCreating(true)}
+              className="w-full bg-white rounded-xl shadow-sm border-2 border-dashed border-gray-300 p-8 hover:border-blue-500 hover:bg-blue-50 transition-colors group"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                  <FolderPlus className="w-8 h-8 text-blue-600" />
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-semibold text-gray-900">创建新项目</p>
+                  <p className="text-sm text-gray-500 mt-1">点击创建一个新的项目空间</p>
+                </div>
+              </div>
+            </button>
+          )}
+        </div>
+
+        {/* Projects Grid */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <ClipLoader size={50} color="#2563eb" />
+              <p className="text-gray-600 mt-4">加载中...</p>
+            </div>
+          </div>
+        ) : projects.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project) => (
+              <div
+                key={project.id}
+                onClick={() => navigate(`/project/${project.id}`)}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer group relative"
+              >
+                <button
+                  onClick={(e) => handleDeleteProject(project.id, project.name, e)}
+                  className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                    <Folder className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-900 truncate mb-1">
+                      {project.name}
+                    </h3>
+                    {project.description && (
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {project.description}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-2">
+                      更新于 {new Date(project.updated_at).toLocaleDateString('zh-CN')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="max-w-4xl mx-auto">
+            {/* 欢迎区域 */}
+            <div className="text-center mb-12">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-6">
+                <Folder className="w-12 h-12 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">欢迎使用 Mermaid AI</h2>
+              <p className="text-lg text-gray-600">使用 AI 快速创建和管理流程图，让想法可视化变得简单</p>
+            </div>
+
+            {/* 功能介绍 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+                  <Sparkles className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">AI 智能生成</h3>
+                <p className="text-gray-600">
+                  只需用自然语言描述你的想法，AI 会自动为你生成专业的 Mermaid 流程图代码
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center mb-4">
+                  <FolderPlus className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">项目管理</h3>
+                <p className="text-gray-600">
+                  创建多个项目空间，分类管理你的流程图，让工作更有条理
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">实时预览</h3>
+                <p className="text-gray-600">
+                  实时渲染流程图，支持多种主题和布局样式，所见即所得
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">版本历史</h3>
+                <p className="text-gray-600">
+                  自动保存每次修改记录，随时回溯到任意历史版本
+                </p>
+              </div>
+            </div>
+
+            {/* 行动号召 */}
+            <div className="text-center">
+              <p className="text-gray-600 mb-6">准备好开始了吗？创建你的第一个项目吧！</p>
+              <button
+                onClick={() => setIsCreating(true)}
+                className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              >
+                <FolderPlus className="w-5 h-5" />
+                创建新项目
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* 删除确认对话框 */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="删除项目"
+        message={`确定要删除项目"${deleteConfirm.projectName}"吗？此操作无法撤销，项目内的所有流程图也会被删除。`}
+        confirmText="删除"
+        cancelText="取消"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm({ isOpen: false, projectId: null, projectName: '' })}
+        danger
+      />
+    </div>
+  );
+}
