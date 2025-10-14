@@ -1,8 +1,17 @@
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import type { User } from '../types';
 import { supabase } from '../lib/supabase';
 
-export function useAuth() {
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  handleGoogleLogin: (googleUser: any) => Promise<User>;
+  signOut: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -100,10 +109,17 @@ export function useAuth() {
     setUser(null);
   };
 
-  return {
-    user,
-    loading,
-    handleGoogleLogin,
-    signOut,
-  };
+  return (
+    <AuthContext.Provider value={{ user, loading, handleGoogleLogin, signOut }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }

@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -13,14 +14,18 @@ interface GoogleJWT {
 
 export function Auth() {
   const { handleGoogleLogin } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const onSuccess = async (credentialResponse: any) => {
     try {
+      setIsLoggingIn(true);
       const decoded = jwtDecode<GoogleJWT>(credentialResponse.credential);
       await handleGoogleLogin(decoded);
+      // 登录成功后，App 组件会自动重新渲染并显示主界面
     } catch (error) {
       console.error('Login failed:', error);
       alert('登录失败,请重试');
+      setIsLoggingIn(false);
     }
   };
 
@@ -71,15 +76,22 @@ export function Auth() {
           </div>
 
           <div className="flex flex-col items-center space-y-4">
-            <GoogleLogin
-              onSuccess={onSuccess}
-              onError={onError}
-              theme="filled_blue"
-              size="large"
-              text="signin_with"
-              shape="rectangular"
-              ux_mode="popup"
-            />
+            {isLoggingIn ? (
+              <div className="text-center py-4">
+                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-gray-600">登录中...</p>
+              </div>
+            ) : (
+              <GoogleLogin
+                onSuccess={onSuccess}
+                onError={onError}
+                theme="filled_blue"
+                size="large"
+                text="signin_with"
+                shape="rectangular"
+                ux_mode="popup"
+              />
+            )}
           </div>
 
           <div className="mt-8 text-center text-sm text-gray-500">

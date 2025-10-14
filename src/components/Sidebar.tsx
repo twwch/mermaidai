@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
   FolderPlus,
@@ -223,50 +223,54 @@ export function Sidebar() {
             <div className="space-y-1">
               {projects.map((project) => (
                 <div key={project.id} className="group">
-                  <button
-                    onClick={() => setCurrentProject(project)}
+                  <div
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
                       currentProject?.id === project.id
                         ? 'bg-blue-600'
                         : 'hover:bg-gray-800'
                     }`}
                   >
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <button
+                      onClick={() => setCurrentProject(project)}
+                      className="flex items-center gap-2 flex-1 min-w-0"
+                    >
                       <Folder className="w-4 h-4 flex-shrink-0" />
                       <span className="text-sm truncate">{project.name}</span>
-                    </div>
+                    </button>
                     <button
                       onClick={(e) => handleDeleteProject(project.id, e)}
-                      className="p-1 hover:bg-red-600 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="p-1 hover:bg-red-600 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
-                  </button>
+                  </div>
 
                   {/* 流程图列表 */}
                   {currentProject?.id === project.id && (
                     <div className="ml-6 mt-1 space-y-1">
                       {diagrams.map((diagram) => (
-                        <button
+                        <div
                           key={diagram.id}
-                          onClick={() => setCurrentDiagram(diagram)}
                           className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-sm group ${
                             currentDiagram?.id === diagram.id
                               ? 'bg-blue-500'
                               : 'hover:bg-gray-800'
                           }`}
                         >
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <button
+                            onClick={() => setCurrentDiagram(diagram)}
+                            className="flex items-center gap-2 flex-1 min-w-0"
+                          >
                             <FileText className="w-3 h-3 flex-shrink-0" />
                             <span className="truncate text-xs">{diagram.name}</span>
-                          </div>
+                          </button>
                           <button
                             onClick={(e) => handleDeleteDiagram(diagram.id, e)}
-                            className="p-1 hover:bg-red-600 rounded opacity-0 group-hover:opacity-100"
+                            className="p-1 hover:bg-red-600 rounded opacity-0 group-hover:opacity-100 flex-shrink-0"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
-                        </button>
+                        </div>
                       ))}
                     </div>
                   )}

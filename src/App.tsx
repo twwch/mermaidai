@@ -1,4 +1,4 @@
-import { useAuth } from './hooks/useAuth';
+import { useAuth } from './contexts/AuthContext';
 import { Auth } from './components/Auth';
 import { Sidebar } from './components/Sidebar';
 import { DiagramEditor } from './components/DiagramEditor';
