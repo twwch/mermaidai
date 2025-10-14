@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Clock, User, RotateCcw, Code, Eye, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import mermaid from 'mermaid';
@@ -19,6 +20,7 @@ function SafeMermaidRenderer({
   layout?: string;
   theme?: string;
 }) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [rendered, setRendered] = useState(false);
@@ -115,7 +117,7 @@ function SafeMermaidRenderer({
         } catch (err) {
           console.error(`History item ${itemId} render error:`, err);
           if (mounted) {
-            setError(err instanceof Error ? err.message : '渲染失败');
+            setError(err instanceof Error ? err.message : t('history.renderError'));
             setRendered(true);
           }
           if (containerRef.current) {
@@ -139,9 +141,9 @@ function SafeMermaidRenderer({
     return (
       <div className="flex flex-col items-center justify-center h-full text-gray-500 p-8">
         <AlertCircle className="w-12 h-12 mb-3 text-amber-500" />
-        <p className="text-base font-medium text-gray-700 mb-2">语法错误</p>
+        <p className="text-base font-medium text-gray-700 mb-2">{t('history.syntaxError')}</p>
         <p className="text-xs text-center text-gray-500 max-w-md">
-          该历史记录包含无效的 Mermaid 代码
+          {t('history.invalidCode')}
         </p>
       </div>
     );
@@ -167,6 +169,7 @@ interface HistoryDrawerProps {
 }
 
 export function HistoryDrawer({ isOpen, onClose, diagramId, onRestore }: HistoryDrawerProps) {
+  const { t, i18n } = useTranslation();
   const [history, setHistory] = useState<DiagramHistory[]>([]);
   const [loading, setLoading] = useState(false);
   const [globalViewMode, setGlobalViewMode] = useState<'code' | 'preview'>('code');
@@ -198,7 +201,10 @@ export function HistoryDrawer({ isOpen, onClose, diagramId, onRestore }: History
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleString('zh-CN', {
+    const locale = i18n.language === 'zh' ? 'zh-CN' :
+                   i18n.language === 'ja' ? 'ja-JP' :
+                   i18n.language === 'ko' ? 'ko-KR' : 'en-US';
+    return date.toLocaleString(locale, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -217,10 +223,10 @@ export function HistoryDrawer({ isOpen, onClose, diagramId, onRestore }: History
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return '刚刚';
-    if (diffMins < 60) return `${diffMins}分钟前`;
-    if (diffHours < 24) return `${diffHours}小时前`;
-    if (diffDays < 7) return `${diffDays}天前`;
+    if (diffMins < 1) return t('history.justNow');
+    if (diffMins < 60) return t('history.minutesAgo', { count: diffMins });
+    if (diffHours < 24) return t('history.hoursAgo', { count: diffHours });
+    if (diffDays < 7) return t('history.daysAgo', { count: diffDays });
     return formatDate(dateStr);
   };
 
@@ -241,7 +247,7 @@ export function HistoryDrawer({ isOpen, onClose, diagramId, onRestore }: History
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
           <div className="flex items-center gap-3">
             <Clock className="w-5 h-5 text-indigo-600" />
-            <h2 className="text-lg font-semibold text-gray-800">历史记录</h2>
+            <h2 className="text-lg font-semibold text-gray-800">{t('history.title')}</h2>
           </div>
           <div className="flex items-center gap-3">
             {/* 全局视图切换按钮 */}
@@ -255,7 +261,7 @@ export function HistoryDrawer({ isOpen, onClose, diagramId, onRestore }: History
                 }`}
               >
                 <Code className="w-4 h-4" />
-                代码
+                {t('history.code')}
               </button>
               <button
                 onClick={() => setGlobalViewMode('preview')}
@@ -266,7 +272,7 @@ export function HistoryDrawer({ isOpen, onClose, diagramId, onRestore }: History
                 }`}
               >
                 <Eye className="w-4 h-4" />
-                预览
+                {t('history.preview')}
               </button>
             </div>
             <button
@@ -287,8 +293,8 @@ export function HistoryDrawer({ isOpen, onClose, diagramId, onRestore }: History
           ) : history.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
               <Clock className="w-16 h-16 mb-4 text-gray-300" />
-              <p className="text-lg">暂无历史记录</p>
-              <p className="text-sm mt-2">保存或使用 AI 生成后会显示历史</p>
+              <p className="text-lg">{t('history.noHistory')}</p>
+              <p className="text-sm mt-2">{t('history.noHistoryDesc')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -317,7 +323,7 @@ export function HistoryDrawer({ isOpen, onClose, diagramId, onRestore }: History
                           <div className="flex items-center gap-2 mb-1">
                             <User className="w-4 h-4 text-gray-400" />
                             <span className="text-sm font-medium text-gray-700">
-                              {item.user_prompt || '手动保存'}
+                              {item.user_prompt || t('editor.manualSave')}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -365,7 +371,7 @@ export function HistoryDrawer({ isOpen, onClose, diagramId, onRestore }: History
                           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
                         >
                           <RotateCcw className="w-4 h-4" />
-                          恢复此版本
+                          {t('history.restore')}
                         </button>
                       </div>
                     </div>

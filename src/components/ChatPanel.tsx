@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Send, Loader2 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
@@ -8,6 +9,7 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ onClose, onRefine }: ChatPanelProps) {
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
   const { isGenerating, setIsGenerating } = useStore();
 
@@ -21,7 +23,7 @@ export function ChatPanel({ onClose, onRefine }: ChatPanelProps) {
       setInput('');
     } catch (error) {
       console.error('Chat error:', error);
-      alert('AI 生成失败,请重试');
+      alert(t('chat.aiError'));
     } finally {
       setIsGenerating(false);
     }
@@ -33,7 +35,7 @@ export function ChatPanel({ onClose, onRefine }: ChatPanelProps) {
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <h3 className="font-semibold text-gray-800">AI 助手</h3>
+          <h3 className="font-semibold text-gray-800">{t('chat.title')}</h3>
         </div>
         <button
           onClick={onClose}
@@ -46,12 +48,12 @@ export function ChatPanel({ onClose, onRefine }: ChatPanelProps) {
       {/* 消息区域 */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="text-sm text-gray-600 mb-4">
-          <p className="mb-2">👋 你好!我可以帮你:</p>
+          <p className="mb-2">{t('chat.greeting')}</p>
           <ul className="list-disc list-inside space-y-1 text-xs">
-            <li>修改流程图的样式和布局</li>
-            <li>添加或删除节点和连接</li>
-            <li>优化流程图结构</li>
-            <li>转换图表类型</li>
+            <li>{t('chat.help1')}</li>
+            <li>{t('chat.help2')}</li>
+            <li>{t('chat.help3')}</li>
+            <li>{t('chat.help4')}</li>
           </ul>
         </div>
       </div>
@@ -63,7 +65,7 @@ export function ChatPanel({ onClose, onRefine }: ChatPanelProps) {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="描述你想要的修改..."
+            placeholder={t('chat.placeholder')}
             disabled={isGenerating}
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
           />

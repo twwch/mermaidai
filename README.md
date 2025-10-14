@@ -28,11 +28,13 @@
 
 ### 用户体验
 - 🔐 **Google 登录**: 使用 Google OAuth 安全便捷登录
+- 🌍 **多语言支持**: 支持中文、英文、日文、韩文四种语言，自动检测浏览器语言
 - ☁️ **云端存储**: 使用 Supabase 可靠存储所有数据
 - 💾 **自动保存**: 实时保存编辑内容，不怕丢失
 - 📥 **导出功能**: 一键导出 Mermaid 源代码文件
 - 🎪 **美观对话框**: 现代化的确认对话框替代原生弹窗
 - 🌈 **友好空状态**: 新用户引导和功能介绍页面
+- 📱 **无限滚动**: 项目和流程图列表支持分页加载，流畅浏览大量数据
 
 ## 🚀 快速开始
 
@@ -89,6 +91,7 @@ npm run dev
 - **前端框架**: React 18 + TypeScript + Vite
 - **样式方案**: Tailwind CSS
 - **路由管理**: React Router v6
+- **国际化**: i18next + react-i18next
 - **代码编辑器**: Monaco Editor
 - **图表渲染**: Mermaid.js v11
 - **状态管理**: React Context API
@@ -96,6 +99,7 @@ npm run dev
 - **认证系统**: Google OAuth 2.0
 - **AI 引擎**: Google Gemini 2.5 Pro
 - **UI 组件**: Lucide React Icons、react-spinners
+- **部署平台**: Vercel (支持 SPA 路由)
 
 ## 📁 项目结构
 
@@ -108,6 +112,7 @@ mermaidai/
 │   │   ├── CodeEditor.tsx  # Monaco 代码编辑器
 │   │   ├── ConfirmDialog.tsx  # 确认对话框
 │   │   ├── HistoryDrawer.tsx  # 历史记录抽屉
+│   │   ├── LanguageSwitcher.tsx  # 语言切换器
 │   │   └── MermaidRenderer.tsx  # Mermaid 渲染器
 │   ├── contexts/            # React Context
 │   │   └── AuthContext.tsx # 全局认证状态
@@ -115,14 +120,21 @@ mermaidai/
 │   │   ├── ProjectList.tsx     # 项目列表页
 │   │   ├── DiagramList.tsx     # 流程图列表页
 │   │   └── DiagramEditorPage.tsx  # 编辑器页面
+│   ├── locales/             # 国际化翻译文件
+│   │   ├── zh.ts           # 中文翻译
+│   │   ├── en.ts           # 英文翻译
+│   │   ├── ja.ts           # 日文翻译
+│   │   └── ko.ts           # 韩文翻译
 │   ├── lib/                 # 第三方库配置
 │   │   ├── supabase.ts     # Supabase 客户端
 │   │   └── googleAuth.ts   # Google OAuth
 │   ├── services/            # 业务服务
 │   │   └── ai.ts           # AI 生成和微调
+│   ├── i18n.ts              # 国际化配置
 │   └── types/               # TypeScript 类型
 │       └── database.ts     # 数据库类型定义
 ├── supabase-schema-new.sql  # 数据库架构
+├── vercel.json              # Vercel 部署配置
 ├── QUICKSTART_CHECKLIST.md  # 快速启动清单 ⭐
 ├── GOOGLE_AUTH_SETUP.md     # Google OAuth 设置指南
 ├── CHANGES.md               # 重大变更说明
@@ -184,7 +196,17 @@ mermaidai/
 - 查看用户提示和 AI 响应
 - 一键恢复到任意历史版本
 
-### 6️⃣ 导出和保存
+### 6️⃣ 语言切换
+
+点击右上角的语言切换器（地球图标）：
+- 🇨🇳 **中文**：简体中文界面
+- 🇺🇸 **English**：英文界面
+- 🇯🇵 **日本語**：日文界面
+- 🇰🇷 **한국어**：韩文界面
+
+语言设置会自动保存，下次访问时使用您选择的语言。
+
+### 7️⃣ 导出和保存
 
 - 💾 **自动保存**：修改后自动保存到云端
 - 📥 **导出代码**：点击导出按钮下载 `.mmd` 文件
@@ -200,6 +222,32 @@ mermaidai/
 | [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) | 📊 项目技术架构 |
 
 ## 🔄 版本更新
+
+### v2.2.0 (2025-10-14)
+
+**国际化支持：**
+- 🌍 完整的多语言支持：中文、英文、日文、韩文
+- 🔄 自动检测浏览器语言，智能切换
+- 💾 语言偏好持久化保存到本地
+- 📅 日期和时间本地化显示
+- 🎨 全局语言切换器，一键切换界面语言
+
+**AI 生成优化：**
+- 🤖 增强 AI Prompt，严格遵守 Mermaid 语法规范
+- ✅ 节点ID规范化（仅使用字母、数字、下划线）
+- 🔍 智能代码验证，自动过滤无效内容
+- 📋 详细的语法约束和错误预防机制
+- 🎯 大幅降低渲染失败率，提升生成质量
+
+**用户体验改进：**
+- 🚨 渲染错误改为弹窗提示，界面更简洁
+- 📱 支持无限滚动分页加载（每页10条）
+- 📌 固定页面标题栏，滚动时保持可见
+- 🔄 优化空状态下的滚动体验
+
+**部署优化：**
+- ☁️ 修复 Vercel 部署的路由 404 问题
+- 🔧 添加 SPA 路由配置支持
 
 ### v2.1.0 (2025-10-14)
 
@@ -273,7 +321,8 @@ MIT License
 
 ---
 
-**当前版本**：v2.1.0
+**当前版本**：v2.2.0
 **最后更新**：2025-10-14
 **开发状态**：✅ 生产就绪
 **构建状态**：✅ 通过所有测试
+**语言支持**：🌍 中文 | English | 日本語 | 한국어

@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { FolderPlus, Folder, LogOut, Trash2, Sparkles } from 'lucide-react';
 import type { Project } from '../types';
 import { ClipLoader } from 'react-spinners';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 export function ProjectList() {
+  const { t, i18n } = useTranslation();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -19,6 +22,7 @@ export function ProjectList() {
     projectId: null,
     projectName: '',
   });
+  const [isDeleting, setIsDeleting] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
@@ -77,29 +81,6 @@ export function ProjectList() {
     setIsLoadingMore(false);
   };
 
-  // 使用 Intersection Observer 监听底部元素
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!loadMoreRef.current || !hasMore || isLoadingMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
-          loadMore();
-        }
-      },
-      {
-        rootMargin: '200px', // 提前 200px 触发加载
-      }
-    );
-
-    observer.observe(loadMoreRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [hasMore, isLoadingMore, page]);
 
   const handleCreateProject = async () => {
     if (!newProjectName.trim() || !user) return;
@@ -137,6 +118,7 @@ export function ProjectList() {
     if (!deleteConfirm.projectId) return;
 
     try {
+      setIsDeleting(true);
       const { error } = await supabase
         .from('projects')
         .delete()
@@ -144,11 +126,17 @@ export function ProjectList() {
 
       if (error) throw error;
 
-      setProjects(projects.filter(p => p.id !== deleteConfirm.projectId));
+      // 重新加载第一页数据
+      setPage(0);
+      setHasMore(true);
+      await loadProjects(0, false);
+
       setDeleteConfirm({ isOpen: false, projectId: null, projectName: '' });
     } catch (error) {
       console.error('Delete project error:', error);
-      alert('删除项目失败');
+      alert(t('project.deleteProjectError'));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -159,8 +147,8 @@ export function ProjectList() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Mermaid AI</h1>
-              <p className="text-sm text-gray-600 mt-1">我的项目</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('project.title')}</h1>
+              <p className="text-sm text-gray-600 mt-1">{t('project.myProjects')}</p>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 text-sm text-gray-700">
@@ -171,12 +159,13 @@ export function ProjectList() {
                 />
                 <span>{user?.name}</span>
               </div>
+              <LanguageSwitcher />
               <button
                 onClick={signOut}
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                退出
+                {t('common.logout')}
               </button>
             </div>
           </div>
@@ -189,12 +178,12 @@ export function ProjectList() {
         <div className="mb-8">
           {isCreating ? (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">创建新项目</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('project.createProject')}</h3>
               <input
                 type="text"
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
-                placeholder="项目名称"
+                placeholder={t('project.projectName')}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                 autoFocus
                 onKeyDown={(e) => {
@@ -210,7 +199,7 @@ export function ProjectList() {
                   onClick={handleCreateProject}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  创建
+                  {t('common.create')}
                 </button>
                 <button
                   onClick={() => {
@@ -219,7 +208,7 @@ export function ProjectList() {
                   }}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  取消
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -233,8 +222,8 @@ export function ProjectList() {
                   <FolderPlus className="w-8 h-8 text-blue-600" />
                 </div>
                 <div className="text-center">
-                  <p className="text-lg font-semibold text-gray-900">创建新项目</p>
-                  <p className="text-sm text-gray-500 mt-1">点击创建一个新的项目空间</p>
+                  <p className="text-lg font-semibold text-gray-900">{t('project.createProject')}</p>
+                  <p className="text-sm text-gray-500 mt-1">{t('project.createProjectDesc')}</p>
                 </div>
               </div>
             </button>
@@ -246,7 +235,7 @@ export function ProjectList() {
           <div className="flex items-center justify-center py-16">
             <div className="text-center">
               <ClipLoader size={50} color="#2563eb" />
-              <p className="text-gray-600 mt-4">加载中...</p>
+              <p className="text-gray-600 mt-4">{t('common.loading')}</p>
             </div>
           </div>
         ) : projects.length > 0 ? (
@@ -279,7 +268,11 @@ export function ProjectList() {
                         </p>
                       )}
                       <p className="text-xs text-gray-400 mt-2">
-                        更新于 {new Date(project.updated_at).toLocaleDateString('zh-CN')}
+                        {t('project.updatedAt')} {new Date(project.updated_at).toLocaleDateString(
+                          i18n.language === 'zh' ? 'zh-CN' :
+                          i18n.language === 'ja' ? 'ja-JP' :
+                          i18n.language === 'ko' ? 'ko-KR' : 'en-US'
+                        )}
                       </p>
                     </div>
                   </div>
@@ -287,22 +280,32 @@ export function ProjectList() {
               ))}
             </div>
 
-            {/* 加载更多触发器和指示器 */}
-            <div ref={loadMoreRef} className="w-full">
-              {isLoadingMore && (
-                <div className="flex items-center justify-center py-8">
-                  <ClipLoader size={40} color="#2563eb" />
-                  <p className="text-gray-600 ml-3">加载更多...</p>
-                </div>
-              )}
+            {/* 分页加载按钮 */}
+            {hasMore && (
+              <div className="flex justify-center py-8">
+                <button
+                  onClick={loadMore}
+                  disabled={isLoadingMore}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <ClipLoader size={20} color="#ffffff" />
+                      <span>{t('common.loadMore')}</span>
+                    </>
+                  ) : (
+                    <span>{t('common.loadMore')}</span>
+                  )}
+                </button>
+              </div>
+            )}
 
-              {/* 没有更多数据提示 */}
-              {!hasMore && projects.length >= PAGE_SIZE && (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">没有更多项目了</p>
-                </div>
-              )}
-            </div>
+            {/* 没有更多数据提示 */}
+            {!hasMore && projects.length >= PAGE_SIZE && (
+              <div className="text-center py-8">
+                <p className="text-gray-500">{t('common.noMore')}</p>
+              </div>
+            )}
           </>
         ) : (
           <div className="max-w-4xl mx-auto">
@@ -311,8 +314,8 @@ export function ProjectList() {
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-6">
                 <Folder className="w-12 h-12 text-white" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">欢迎使用 Mermaid AI</h2>
-              <p className="text-lg text-gray-600">使用 AI 快速创建和管理流程图，让想法可视化变得简单</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">{t('welcome.title')}</h2>
+              <p className="text-lg text-gray-600">{t('welcome.subtitle')}</p>
             </div>
 
             {/* 功能介绍 */}
@@ -321,9 +324,9 @@ export function ProjectList() {
                 <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
                   <Sparkles className="w-6 h-6 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">AI 智能生成</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('welcome.features.aiGeneration.title')}</h3>
                 <p className="text-gray-600">
-                  只需用自然语言描述你的想法，AI 会自动为你生成专业的 Mermaid 流程图代码
+                  {t('welcome.features.aiGeneration.desc')}
                 </p>
               </div>
 
@@ -331,9 +334,9 @@ export function ProjectList() {
                 <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center mb-4">
                   <FolderPlus className="w-6 h-6 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">项目管理</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('welcome.features.projectManagement.title')}</h3>
                 <p className="text-gray-600">
-                  创建多个项目空间，分类管理你的流程图，让工作更有条理
+                  {t('welcome.features.projectManagement.desc')}
                 </p>
               </div>
 
@@ -343,9 +346,9 @@ export function ProjectList() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">实时预览</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('welcome.features.realTimePreview.title')}</h3>
                 <p className="text-gray-600">
-                  实时渲染流程图，支持多种主题和布局样式，所见即所得
+                  {t('welcome.features.realTimePreview.desc')}
                 </p>
               </div>
 
@@ -355,22 +358,22 @@ export function ProjectList() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">版本历史</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('welcome.features.versionHistory.title')}</h3>
                 <p className="text-gray-600">
-                  自动保存每次修改记录，随时回溯到任意历史版本
+                  {t('welcome.features.versionHistory.desc')}
                 </p>
               </div>
             </div>
 
             {/* 行动号召 */}
             <div className="text-center">
-              <p className="text-gray-600 mb-6">准备好开始了吗？创建你的第一个项目吧！</p>
+              <p className="text-gray-600 mb-6">{t('welcome.getStarted')}</p>
               <button
                 onClick={() => setIsCreating(true)}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 <FolderPlus className="w-5 h-5" />
-                创建新项目
+                {t('project.createProject')}
               </button>
             </div>
           </div>
@@ -380,13 +383,14 @@ export function ProjectList() {
       {/* 删除确认对话框 */}
       <ConfirmDialog
         isOpen={deleteConfirm.isOpen}
-        title="删除项目"
-        message={`确定要删除项目"${deleteConfirm.projectName}"吗？此操作无法撤销，项目内的所有流程图也会被删除。`}
-        confirmText="删除"
-        cancelText="取消"
+        title={t('project.deleteProjectTitle')}
+        message={t('project.deleteProjectMessage', { name: deleteConfirm.projectName })}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteConfirm({ isOpen: false, projectId: null, projectName: '' })}
         danger
+        isLoading={isDeleting}
       />
     </div>
   );

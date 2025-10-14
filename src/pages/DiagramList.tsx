@@ -8,8 +8,11 @@ import mermaid from 'mermaid';
 import { generateMermaidCode } from '../services/ai';
 import { ClipLoader } from 'react-spinners';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 export function DiagramList() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
@@ -24,6 +27,7 @@ export function DiagramList() {
     diagramId: null,
     diagramName: '',
   });
+  const [isDeleting, setIsDeleting] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
@@ -55,29 +59,6 @@ export function DiagramList() {
     setIsLoadingMore(false);
   };
 
-  // 使用 Intersection Observer 监听底部元素
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!loadMoreRef.current || !hasMore || isLoadingMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
-          loadMore();
-        }
-      },
-      {
-        rootMargin: '200px', // 提前 200px 触发加载
-      }
-    );
-
-    observer.observe(loadMoreRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [hasMore, isLoadingMore, page]);
 
   const loadProject = async () => {
     if (!projectId) return;
@@ -151,7 +132,7 @@ export function DiagramList() {
           diagram_id: data.id,
           mermaid_code: code,
           user_prompt: newDiagramPrompt,
-          ai_response: 'AI 生成初始版本',
+          ai_response: t('diagram.aiGenerate'),
         });
 
         setDiagrams([data, ...diagrams]);
@@ -164,7 +145,7 @@ export function DiagramList() {
       }
     } catch (error) {
       console.error('Create diagram error:', error);
-      alert('AI 生成失败,请检查配置');
+      alert(t('diagram.createDiagramError'));
     } finally {
       setIsGenerating(false);
     }
@@ -179,6 +160,7 @@ export function DiagramList() {
     if (!deleteConfirm.diagramId) return;
 
     try {
+      setIsDeleting(true);
       const { error } = await supabase
         .from('diagrams')
         .delete()
@@ -186,11 +168,17 @@ export function DiagramList() {
 
       if (error) throw error;
 
-      setDiagrams(diagrams.filter(d => d.id !== deleteConfirm.diagramId));
+      // 重新加载第一页数据
+      setPage(0);
+      setHasMore(true);
+      await loadDiagrams(0, false);
+
       setDeleteConfirm({ isOpen: false, diagramId: null, diagramName: '' });
     } catch (error) {
       console.error('Delete diagram error:', error);
-      alert('删除流程图失败');
+      alert(t('diagram.deleteDiagramError'));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -209,8 +197,9 @@ export function DiagramList() {
               </button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{project?.name || '项目'}</h1>
-                <p className="text-sm text-gray-600 mt-1">流程图列表</p>
+                <p className="text-sm text-gray-600 mt-1">{t('diagram.diagramList')}</p>
               </div>
+              <LanguageSwitcher />
             </div>
           </div>
         </div>
@@ -222,11 +211,11 @@ export function DiagramList() {
         <div className="mb-8">
           {isCreating ? (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">创建新流程图</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('diagram.createDiagram')}</h3>
               <textarea
                 value={newDiagramPrompt}
                 onChange={(e) => setNewDiagramPrompt(e.target.value)}
-                placeholder="描述你想要的流程图，例如：用户登录流程"
+                placeholder={t('diagram.descriptionPlaceholder')}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 resize-none"
                 rows={3}
                 autoFocus
@@ -246,12 +235,12 @@ export function DiagramList() {
                   {isGenerating ? (
                     <>
                       <ClipLoader size={16} color="#ffffff" />
-                      生成中...
+                      {t('diagram.generating')}
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4" />
-                      AI 生成
+                      {t('diagram.aiGenerate')}
                     </>
                   )}
                 </button>
@@ -263,7 +252,7 @@ export function DiagramList() {
                   disabled={isGenerating}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
                 >
-                  取消
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -277,8 +266,8 @@ export function DiagramList() {
                   <FilePlus className="w-8 h-8 text-blue-600" />
                 </div>
                 <div className="text-center">
-                  <p className="text-lg font-semibold text-gray-900">创建新流程图</p>
-                  <p className="text-sm text-gray-500 mt-1">使用 AI 快速生成流程图</p>
+                  <p className="text-lg font-semibold text-gray-900">{t('diagram.createDiagram')}</p>
+                  <p className="text-sm text-gray-500 mt-1">{t('diagramWelcome.subtitle')}</p>
                 </div>
               </div>
             </button>
@@ -290,7 +279,7 @@ export function DiagramList() {
           <div className="flex items-center justify-center py-16">
             <div className="text-center">
               <ClipLoader size={50} color="#2563eb" />
-              <p className="text-gray-600 mt-4">加载中...</p>
+              <p className="text-gray-600 mt-4">{t('common.loading')}</p>
             </div>
           </div>
         ) : diagrams.length > 0 ? (
@@ -306,22 +295,32 @@ export function DiagramList() {
               ))}
             </div>
 
-            {/* 加载更多触发器和指示器 */}
-            <div ref={loadMoreRef} className="w-full">
-              {isLoadingMore && (
-                <div className="flex items-center justify-center py-8">
-                  <ClipLoader size={40} color="#2563eb" />
-                  <p className="text-gray-600 ml-3">加载更多...</p>
-                </div>
-              )}
+            {/* 分页加载按钮 */}
+            {hasMore && (
+              <div className="flex justify-center py-8">
+                <button
+                  onClick={loadMore}
+                  disabled={isLoadingMore}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <ClipLoader size={20} color="#ffffff" />
+                      <span>{t('common.loadMore')}</span>
+                    </>
+                  ) : (
+                    <span>{t('common.loadMore')}</span>
+                  )}
+                </button>
+              </div>
+            )}
 
-              {/* 没有更多数据提示 */}
-              {!hasMore && diagrams.length >= PAGE_SIZE && (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">没有更多流程图了</p>
-                </div>
-              )}
-            </div>
+            {/* 没有更多数据提示 */}
+            {!hasMore && diagrams.length >= PAGE_SIZE && (
+              <div className="text-center py-8">
+                <p className="text-gray-500">{t('common.noMore')}</p>
+              </div>
+            )}
           </>
         ) : (
           <div className="max-w-3xl mx-auto">
@@ -330,8 +329,8 @@ export function DiagramList() {
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-5">
                 <FileText className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">开始创建流程图</h2>
-              <p className="text-gray-600">使用 AI 快速生成专业的 Mermaid 流程图</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('diagramWelcome.title')}</h2>
+              <p className="text-gray-600">{t('diagramWelcome.subtitle')}</p>
             </div>
 
             {/* 功能介绍 */}
@@ -340,9 +339,9 @@ export function DiagramList() {
                 <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-3">
                   <Sparkles className="w-5 h-5 text-blue-600" />
                 </div>
-                <h3 className="text-base font-semibold text-gray-900 mb-1">AI 生成</h3>
+                <h3 className="text-base font-semibold text-gray-900 mb-1">{t('diagramWelcome.features.aiGeneration.title')}</h3>
                 <p className="text-sm text-gray-600">
-                  描述你的需求，AI 自动生成流程图
+                  {t('diagramWelcome.features.aiGeneration.desc')}
                 </p>
               </div>
 
@@ -352,9 +351,9 @@ export function DiagramList() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold text-gray-900 mb-1">自定义样式</h3>
+                <h3 className="text-base font-semibold text-gray-900 mb-1">{t('diagramWelcome.features.customStyle.title')}</h3>
                 <p className="text-sm text-gray-600">
-                  多种主题和布局，随心切换
+                  {t('diagramWelcome.features.customStyle.desc')}
                 </p>
               </div>
 
@@ -364,28 +363,28 @@ export function DiagramList() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold text-gray-900 mb-1">版本管理</h3>
+                <h3 className="text-base font-semibold text-gray-900 mb-1">{t('diagramWelcome.features.versionControl.title')}</h3>
                 <p className="text-sm text-gray-600">
-                  每次修改都会保存，可随时回退
+                  {t('diagramWelcome.features.versionControl.desc')}
                 </p>
               </div>
             </div>
 
             {/* 示例说明 */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">💡 你可以这样描述：</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('diagramWelcome.examplesTitle')}</h3>
               <ul className="space-y-2 text-gray-700">
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 font-bold">•</span>
-                  <span>"创建一个用户注册登录的流程图"</span>
+                  <span>{t('diagramWelcome.examples.example1')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 font-bold">•</span>
-                  <span>"画一个订单处理的业务流程"</span>
+                  <span>{t('diagramWelcome.examples.example2')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 font-bold">•</span>
-                  <span>"展示一个支付系统的架构图"</span>
+                  <span>{t('diagramWelcome.examples.example3')}</span>
                 </li>
               </ul>
             </div>
@@ -397,7 +396,7 @@ export function DiagramList() {
                 className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 <Sparkles className="w-5 h-5" />
-                创建第一个流程图
+                {t('diagram.createFirstDiagram')}
               </button>
             </div>
           </div>
@@ -407,13 +406,14 @@ export function DiagramList() {
       {/* 删除确认对话框 */}
       <ConfirmDialog
         isOpen={deleteConfirm.isOpen}
-        title="删除流程图"
-        message={`确定要删除流程图"${deleteConfirm.diagramName}"吗？此操作无法撤销。`}
-        confirmText="删除"
-        cancelText="取消"
+        title={t('diagram.deleteDiagramTitle')}
+        message={t('diagram.deleteDiagramMessage', { name: deleteConfirm.diagramName })}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteConfirm({ isOpen: false, diagramId: null, diagramName: '' })}
         danger
+        isLoading={isDeleting}
       />
     </div>
   );
@@ -432,6 +432,7 @@ function DiagramCard({
   onDelete: (id: string, name: string, e: React.MouseEvent) => void;
   onClick: () => void;
 }) {
+  const { t, i18n } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasError, setHasError] = useState(false);
   const [isRendered, setIsRendered] = useState(false);
@@ -514,7 +515,7 @@ function DiagramCard({
         {hasError ? (
           <div className="text-center">
             <FileText className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-            <p className="text-xs text-gray-400">预览加载失败</p>
+            <p className="text-xs text-gray-400">{t('diagram.previewError')}</p>
           </div>
         ) : (
           <>
@@ -522,7 +523,7 @@ function DiagramCard({
               <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
                 <div className="text-center">
                   <ClipLoader size={32} color="#2563eb" />
-                  <p className="text-xs text-gray-400 mt-2">加载中...</p>
+                  <p className="text-xs text-gray-400 mt-2">{t('common.loading')}</p>
                 </div>
               </div>
             )}
@@ -541,7 +542,11 @@ function DiagramCard({
           {diagram.name}
         </h3>
         <p className="text-xs text-gray-400">
-          更新于 {new Date(diagram.updated_at).toLocaleDateString('zh-CN')}
+          {t('project.updatedAt')} {new Date(diagram.updated_at).toLocaleDateString(
+            i18n.language === 'zh' ? 'zh-CN' :
+            i18n.language === 'ja' ? 'ja-JP' :
+            i18n.language === 'ko' ? 'ko-KR' : 'en-US'
+          )}
         </p>
       </div>
     </div>

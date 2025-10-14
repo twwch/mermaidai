@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CodeEditor } from '../components/CodeEditor';
 import { MermaidRenderer } from '../components/MermaidRenderer';
 import { ChatPanel } from '../components/ChatPanel';
@@ -10,6 +11,7 @@ import { Save, Download, History, Sparkles, ArrowLeft } from 'lucide-react';
 import type { Diagram } from '../types';
 
 export function DiagramEditorPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { projectId, diagramId } = useParams<{ projectId: string; diagramId: string }>();
   const [diagram, setDiagram] = useState<Diagram | null>(null);
@@ -76,7 +78,7 @@ export function DiagramEditorPage() {
         .insert({
           diagram_id: diagram.id,
           mermaid_code: code,
-          user_prompt: '手动保存',
+          user_prompt: t('editor.manualSave'),
           layout: currentLayout,
           theme: currentTheme,
         } as any)
@@ -95,7 +97,7 @@ export function DiagramEditorPage() {
       });
     } catch (error) {
       console.error('Save error:', error);
-      alert('保存失败');
+      alert(t('editor.saveError'));
     } finally {
       setIsSaving(false);
     }
@@ -137,7 +139,7 @@ export function DiagramEditorPage() {
           diagram_id: diagram.id,
           mermaid_code: newCode,
           user_prompt: prompt,
-          ai_response: '已生成新版本',
+          ai_response: t('editor.aiGenerated'),
           layout: currentLayout,
           theme: currentTheme,
         } as any)
@@ -166,7 +168,7 @@ export function DiagramEditorPage() {
       <div className="h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">加载中...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -193,14 +195,14 @@ export function DiagramEditorPage() {
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
             <Sparkles className="w-4 h-4" />
-            AI 助手
+            {t('editor.aiAssistant')}
           </button>
           <button
             onClick={() => setShowHistory(!showHistory)}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
             <History className="w-4 h-4" />
-            历史记录
+            {t('editor.history')}
           </button>
           <button
             onClick={handleSave}
@@ -208,14 +210,14 @@ export function DiagramEditorPage() {
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            {isSaving ? '保存中...' : '保存'}
+            {isSaving ? t('editor.saving') : t('editor.save')}
           </button>
           <button
             onClick={handleExport}
             className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
           >
             <Download className="w-4 h-4" />
-            导出
+            {t('editor.export')}
           </button>
         </div>
       </header>
