@@ -3,6 +3,8 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { Toast } from './Toast';
+import type { ToastType } from './Toast';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -17,6 +19,7 @@ export function Auth() {
   const { t } = useTranslation();
   const { handleGoogleLogin } = useAuth();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const onSuccess = async (credentialResponse: any) => {
     try {
@@ -26,14 +29,14 @@ export function Auth() {
       // 登录成功后，App 组件会自动重新渲染并显示主界面
     } catch (error) {
       console.error('Login failed:', error);
-      alert(t('auth.loginError'));
+      setToast({ message: t('auth.loginError'), type: 'error' });
       setIsLoggingIn(false);
     }
   };
 
   const onError = () => {
     console.error('Google Login Failed');
-    alert(t('auth.googleLoginError'));
+    setToast({ message: t('auth.googleLoginError'), type: 'error' });
   };
 
   if (!googleClientId || googleClientId === 'your_google_client_id') {
@@ -100,6 +103,15 @@ export function Auth() {
             <p>{t('auth.terms')}</p>
           </div>
         </div>
+
+        {/* Toast 提示 */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
       </div>
     </GoogleOAuthProvider>
   );

@@ -10,6 +10,8 @@ import { ClipLoader } from 'react-spinners';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { Toast } from '../components/Toast';
+import type { ToastType } from '../components/Toast';
 
 export function DiagramList() {
   const { t } = useTranslation();
@@ -32,6 +34,7 @@ export function DiagramList() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 10;
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   useEffect(() => {
     if (projectId) {
@@ -145,7 +148,7 @@ export function DiagramList() {
       }
     } catch (error) {
       console.error('Create diagram error:', error);
-      alert(t('diagram.createDiagramError'));
+      setToast({ message: t('diagram.createDiagramError'), type: 'error' });
     } finally {
       setIsGenerating(false);
     }
@@ -176,7 +179,7 @@ export function DiagramList() {
       setDeleteConfirm({ isOpen: false, diagramId: null, diagramName: '' });
     } catch (error) {
       console.error('Delete diagram error:', error);
-      alert(t('diagram.deleteDiagramError'));
+      setToast({ message: t('diagram.deleteDiagramError'), type: 'error' });
     } finally {
       setIsDeleting(false);
     }
@@ -415,6 +418,15 @@ export function DiagramList() {
         danger
         isLoading={isDeleting}
       />
+
+      {/* Toast 提示 */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

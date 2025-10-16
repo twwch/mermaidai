@@ -8,6 +8,8 @@ import type { Project } from '../types';
 import { ClipLoader } from 'react-spinners';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { Toast } from '../components/Toast';
+import type { ToastType } from '../components/Toast';
 
 export function ProjectList() {
   const { t, i18n } = useTranslation();
@@ -27,6 +29,7 @@ export function ProjectList() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 10;
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   useEffect(() => {
     loadProjects();
@@ -105,7 +108,7 @@ export function ProjectList() {
       }
     } catch (error) {
       console.error('Create project error:', error);
-      alert('创建项目失败');
+      setToast({ message: '创建项目失败', type: 'error' });
     }
   };
 
@@ -134,7 +137,7 @@ export function ProjectList() {
       setDeleteConfirm({ isOpen: false, projectId: null, projectName: '' });
     } catch (error) {
       console.error('Delete project error:', error);
-      alert(t('project.deleteProjectError'));
+      setToast({ message: t('project.deleteProjectError'), type: 'error' });
     } finally {
       setIsDeleting(false);
     }
@@ -392,6 +395,15 @@ export function ProjectList() {
         danger
         isLoading={isDeleting}
       />
+
+      {/* Toast 提示 */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

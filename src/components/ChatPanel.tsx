@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Send, Loader2 } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { Toast } from './Toast';
+import type { ToastType } from './Toast';
 
 interface ChatPanelProps {
   onClose: () => void;
@@ -12,6 +14,7 @@ export function ChatPanel({ onClose, onRefine }: ChatPanelProps) {
   const { t } = useTranslation();
   const [input, setInput] = useState('');
   const { isGenerating, setIsGenerating } = useStore();
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +26,7 @@ export function ChatPanel({ onClose, onRefine }: ChatPanelProps) {
       setInput('');
     } catch (error) {
       console.error('Chat error:', error);
-      alert(t('chat.aiError'));
+      setToast({ message: t('chat.aiError'), type: 'error' });
     } finally {
       setIsGenerating(false);
     }
@@ -82,6 +85,15 @@ export function ChatPanel({ onClose, onRefine }: ChatPanelProps) {
           </button>
         </div>
       </form>
+
+      {/* Toast 提示 */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

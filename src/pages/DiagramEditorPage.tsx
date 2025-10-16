@@ -5,6 +5,8 @@ import { CodeEditor } from '../components/CodeEditor';
 import { MermaidRenderer } from '../components/MermaidRenderer';
 import { ChatPanel } from '../components/ChatPanel';
 import { HistoryDrawer } from '../components/HistoryDrawer';
+import { Toast } from '../components/Toast';
+import type { ToastType } from '../components/Toast';
 import { supabase } from '../lib/supabase';
 import { refineMermaidCode } from '../services/ai';
 import { Save, Download, History, Sparkles, ArrowLeft } from 'lucide-react';
@@ -21,6 +23,7 @@ export function DiagramEditorPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [currentLayout, setCurrentLayout] = useState<'dagre' | 'elk'>('dagre');
   const [currentTheme, setCurrentTheme] = useState<'default' | 'neutral' | 'dark' | 'forest' | 'base'>('default');
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   useEffect(() => {
     if (diagramId) {
@@ -97,7 +100,7 @@ export function DiagramEditorPage() {
       });
     } catch (error) {
       console.error('Save error:', error);
-      alert(t('editor.saveError'));
+      setToast({ message: t('editor.saveError'), type: 'error' });
     } finally {
       setIsSaving(false);
     }
@@ -261,6 +264,15 @@ export function DiagramEditorPage() {
         diagramId={diagram.id}
         onRestore={handleRestoreHistory}
       />
+
+      {/* Toast 提示 */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

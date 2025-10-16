@@ -3,6 +3,7 @@ import mermaid from 'mermaid';
 import svgPanZoom from 'svg-pan-zoom';
 import elk from '@mermaid-js/layout-elk';
 import { useTranslation } from 'react-i18next';
+import { ErrorToast } from './ErrorToast';
 
 type LayoutType = 'dagre' | 'elk';
 type ThemeType = 'default' | 'neutral' | 'dark' | 'forest' | 'base';
@@ -38,6 +39,7 @@ export function MermaidRenderer({
   const [showLayoutMenu, setShowLayoutMenu] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const panZoomInstance = useRef<any>(null);
 
   useEffect(() => {
@@ -152,9 +154,21 @@ export function MermaidRenderer({
           panZoomInstance.current = null;
         }
 
+        // 清空容器中的所有内容
+        if (containerRef.current) {
+          containerRef.current.innerHTML = '';
+        }
+
         // 使用唯一ID和时间戳确保每次都重新渲染
         const id = `mermaid-${renderKey}-${Date.now()}`;
         const { svg } = await mermaid.render(id, code);
+
+        // 清理 mermaid 可能创建的临时错误元素
+        const tempErrorDiv = document.getElementById(id);
+        if (tempErrorDiv && tempErrorDiv.parentElement) {
+          tempErrorDiv.remove();
+        }
+
         if (containerRef.current) {
           containerRef.current.innerHTML = svg;
 
@@ -178,11 +192,21 @@ export function MermaidRenderer({
         }
       } catch (err) {
         console.error('Mermaid render error:', err);
-        const errorMessage = err instanceof Error ? err.message : t('renderer.renderError');
-        alert(t('renderer.renderError') + ': ' + errorMessage);
+        const errorMsg = err instanceof Error ? err.message : t('renderer.renderError');
+        setErrorMessage(errorMsg);
+
+        // 完全清空容器，移除所有可能的错误内容
         if (containerRef.current) {
           containerRef.current.innerHTML = '';
         }
+
+        // 清理 mermaid 可能创建的任何错误元素
+        const mermaidErrorDivs = document.querySelectorAll('[id^="mermaid-"]');
+        mermaidErrorDivs.forEach(div => {
+          if (div.textContent?.includes('Syntax error') || div.textContent?.includes('mermaid version')) {
+            div.remove();
+          }
+        });
       }
     };
 
@@ -319,6 +343,14 @@ export function MermaidRenderer({
 
   return (
     <div className={`mermaid-container relative ${className}`}>
+      {/* 错误提示 */}
+      {errorMessage && (
+        <ErrorToast
+          message={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
+
       {/* 控制按钮组 */}
       {code.trim() && (
         <div className="absolute top-4 left-4 z-10 flex gap-2">

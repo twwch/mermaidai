@@ -7,6 +7,8 @@ import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
 import { refineMermaidCode } from '../services/ai';
 import { Save, Download, History, Sparkles } from 'lucide-react';
+import { Toast } from './Toast';
+import type { ToastType } from './Toast';
 
 export function DiagramEditor() {
   const { currentDiagram, updateDiagram, addHistory } = useStore();
@@ -16,6 +18,7 @@ export function DiagramEditor() {
   const [isSaving, setIsSaving] = useState(false);
   const [currentLayout, setCurrentLayout] = useState<'dagre' | 'elk'>('dagre');
   const [currentTheme, setCurrentTheme] = useState<'default' | 'neutral' | 'dark' | 'forest' | 'base'>('default');
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   useEffect(() => {
     if (currentDiagram) {
@@ -71,7 +74,7 @@ export function DiagramEditor() {
       }
     } catch (error) {
       console.error('Save error:', error);
-      alert('保存失败');
+      setToast({ message: '保存失败', type: 'error' });
     } finally {
       setIsSaving(false);
     }
@@ -231,6 +234,15 @@ export function DiagramEditor() {
         diagramId={currentDiagram.id}
         onRestore={handleRestoreHistory}
       />
+
+      {/* Toast 提示 */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
