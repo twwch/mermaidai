@@ -93,17 +93,20 @@ npm run dev
 
 ## 🏗️ 技术栈
 
-- **前端框架**: React 18 + TypeScript + Vite
+- **前端框架**: React 19 + TypeScript + Vite
 - **样式方案**: Tailwind CSS
 - **路由管理**: React Router v6
 - **国际化**: i18next + react-i18next
 - **代码编辑器**: Monaco Editor
-- **图表渲染**: Mermaid.js v11
-- **状态管理**: React Context API
+- **图表渲染**: Mermaid.js v11.12.0 + ELK 布局引擎
+- **图表交互**: svg-pan-zoom (缩放平移)
+- **状态管理**: Zustand + React Context API
 - **数据库**: Supabase (PostgreSQL)
 - **认证系统**: Google OAuth 2.0
-- **AI 引擎**: Google Gemini 2.5 Pro
+- **AI 引擎**: Google Gemini 2.0 Flash
 - **UI 组件**: Lucide React Icons、react-spinners
+- **Markdown**: react-markdown + remark-gfm + rehype-raw
+- **PDF 生成**: jsPDF + html2canvas
 - **部署平台**: Vercel (支持 SPA 路由)
 
 ## 📁 项目结构
@@ -116,15 +119,22 @@ mermaidai/
 │   │   ├── ChatPanel.tsx   # AI 对话面板
 │   │   ├── CodeEditor.tsx  # Monaco 代码编辑器
 │   │   ├── ConfirmDialog.tsx  # 确认对话框
+│   │   ├── DiagramEditor.tsx  # 流程图编辑器
+│   │   ├── ErrorToast.tsx  # 错误提示组件
 │   │   ├── HistoryDrawer.tsx  # 历史记录抽屉
 │   │   ├── LanguageSwitcher.tsx  # 语言切换器
-│   │   └── MermaidRenderer.tsx  # Mermaid 渲染器
+│   │   ├── MarkdownEditor.tsx  # Monaco Markdown 编辑器
+│   │   ├── MarkdownToolbar.tsx # Markdown 编辑工具栏
+│   │   ├── MarkdownWithMermaid.tsx # Markdown + Mermaid 渲染器
+│   │   ├── MermaidRenderer.tsx  # Mermaid 渲染器（支持缩放平移）
+│   │   └── Toast.tsx       # Toast 通知组件
 │   ├── contexts/            # React Context
 │   │   └── AuthContext.tsx # 全局认证状态
 │   ├── pages/               # 页面组件
 │   │   ├── ProjectList.tsx     # 项目列表页
 │   │   ├── DiagramList.tsx     # 流程图列表页
-│   │   └── DiagramEditorPage.tsx  # 编辑器页面
+│   │   ├── DiagramEditorPage.tsx  # 流程图编辑器页面
+│   │   └── MarkdownEditorPage.tsx # Markdown 编辑器页面
 │   ├── locales/             # 国际化翻译文件
 │   │   ├── zh.ts           # 中文翻译
 │   │   ├── en.ts           # 英文翻译
@@ -135,6 +145,8 @@ mermaidai/
 │   │   └── googleAuth.ts   # Google OAuth
 │   ├── services/            # 业务服务
 │   │   └── ai.ts           # AI 生成和微调
+│   ├── store/               # 状态管理
+│   │   └── useStore.ts     # Zustand 全局状态
 │   ├── i18n.ts              # 国际化配置
 │   └── types/               # TypeScript 类型
 │       └── database.ts     # 数据库类型定义
@@ -192,7 +204,17 @@ mermaidai/
 
 右上角工具栏可以快速切换：
 - **主题**：Default（默认）、Neutral（中性）、Dark（暗色）、Forest（森林）、Base（基础）
-- **布局**：TB（上下）、LR（左右）、BT（下上）、RL（右左）
+- **布局引擎**：
+  - **Dagre**：默认分层布局，适合传统流程图
+  - **ELK**：自适应智能布局，适合复杂关系图
+
+### 4.5️⃣ 交互操作
+
+流程图支持丰富的交互功能：
+- 🔍 **缩放**：鼠标滚轮或点击放大/缩小按钮
+- 🖱️ **平移**：鼠标拖拽移动画布
+- 📐 **适应窗口**：自动缩放以适应当前窗口大小
+- 🔄 **重置视图**：恢复到初始状态
 
 ### 5️⃣ 版本历史
 
@@ -214,7 +236,22 @@ mermaidai/
 ### 7️⃣ 导出和保存
 
 - 💾 **自动保存**：修改后自动保存到云端
-- 📥 **导出代码**：点击导出按钮下载 `.mmd` 文件
+- 📥 **多格式导出**：
+  - **PNG 图片**：高清晰度 2x 分辨率图片，适合插入文档
+  - **SVG 矢量**：可无限缩放的矢量图，适合专业排版
+  - **MMD 源码**：Mermaid 源代码文件，方便分享和版本控制
+
+### 8️⃣ Markdown 编辑器
+
+从项目列表页可以进入独立的 Markdown + Mermaid 编辑器：
+- ✍️ **Monaco 编辑器**：专业的代码编辑体验
+- 🎨 **实时预览**：左侧编辑，右侧实时渲染
+- 🛠️ **快捷工具栏**：15+ 常用 Markdown 和 Mermaid 模板
+- 📄 **PDF 导出**：
+  - 支持混合 Markdown 文本和 Mermaid 流程图
+  - 自动处理大型流程图
+  - 智能分页，确保内容完整
+  - 高质量输出 (2x scale, PNG 格式)
 
 ## 📖 文档导航
 
@@ -227,6 +264,39 @@ mermaidai/
 | [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) | 📊 项目技术架构 |
 
 ## 🔄 版本更新
+
+### v2.3.0 (2025-10-16)
+
+**通知系统优化：**
+- 🎪 **Toast 通知系统**：替换所有原生 alert 弹窗为自定义 Toast 组件
+  - 自动关闭功能（5秒后）
+  - 手动关闭按钮
+  - 进度条指示
+  - 平滑的动画效果
+- 🎨 **错误提示改进**：渲染失败时使用 ErrorToast 组件，自动清理 Mermaid 生成的底部错误文本
+- ✅ **统一通知风格**：所有错误、成功、信息提示使用一致的 UI 设计
+
+**Markdown 编辑器新增：**
+- 📊 **独立 Markdown 编辑器**：支持 Markdown + Mermaid 混合编辑
+- ✏️ **Monaco 编辑器集成**：专业代码编辑体验，支持语法高亮、自动补全
+- 🛠️ **Markdown 工具栏**：15+ 快捷工具（标题、表格、列表、代码块、Mermaid 等）
+- 📄 **PDF 导出功能**：
+  - 完整的 Markdown + Mermaid 渲染
+  - 修复 oklch 颜色解析错误
+  - 支持大型流程图自动分页
+  - 智能页面分割，避免流程图跨页断裂
+  - 使用 PNG 格式和 2x scale 提升导出质量
+
+**渲染器增强：**
+- 🔍 **缩放平移功能**：集成 svg-pan-zoom，支持鼠标滚轮缩放、拖拽平移
+- 📐 **布局引擎切换**：支持 Dagre 和 ELK 两种布局算法
+- 🎨 **交互控制优化**：新增放大、缩小、适应窗口、重置视图按钮
+- 🧹 **错误清理增强**：自动清理 Mermaid 在 DOM 中创建的错误元素
+
+**代码质量：**
+- ✅ 消除所有原生 alert() 调用
+- 🔧 优化错误处理逻辑
+- 📦 更新依赖包版本
 
 ### v2.2.0 (2025-10-14)
 
