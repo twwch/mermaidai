@@ -24,6 +24,7 @@ export interface Diagram {
   mermaid_code: string;
   layout: string;
   theme: string;
+  direction: string;
   created_at: string;
   updated_at: string;
 }
@@ -36,6 +37,7 @@ export interface DiagramHistory {
   ai_response: string | null;
   layout: string;
   theme: string;
+  direction: string;
   created_at: string;
 }
 

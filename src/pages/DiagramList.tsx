@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { ArrowLeft, FilePlus, FileText, Trash2, Sparkles } from 'lucide-react';
 import type { Project, Diagram } from '../types';
 import mermaid from 'mermaid';
+import elk from '@mermaid-js/layout-elk';
 import { generateMermaidCode } from '../services/ai';
 import { ClipLoader } from 'react-spinners';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -463,26 +464,65 @@ function DiagramCard({
         if (!mounted || !containerRef.current) return;
 
         try {
-          const layout = diagram.layout || 'TB';
-          const config: any = {
-            startOnLoad: false,
-            theme: diagram.theme || 'default',
-            securityLevel: 'loose',
-            fontSize: 10,
-            flowchart: {
-              curve: layout === 'TB' || layout === 'BT' ? 'linear' : 'basis',
-              htmlLabels: true,
-              padding: 10,
-              nodeSpacing: 30,
-              rankSpacing: 30,
-              useMaxWidth: true,
-            },
-          };
+          // 注册 ELK 布局引擎
+          mermaid.registerLayoutLoaders(elk);
+
+          const layout = diagram.layout || 'dagre';
+          const theme = diagram.theme || 'default';
+          const direction = diagram.direction || 'TB';
+
+          // 根据保存的方向修改代码
+          let modifiedCode = diagram.mermaid_code;
+          const flowchartMatch = modifiedCode.match(/^\s*(flowchart|graph)\s+(TB|BT|LR|RL|TD|BR)?/i);
+          if (flowchartMatch) {
+            if (flowchartMatch[2]) {
+              modifiedCode = modifiedCode.replace(
+                /^\s*(flowchart|graph)\s+(TB|BT|LR|RL|TD|BR)?/i,
+                `$1 ${direction}`
+              );
+            } else {
+              modifiedCode = modifiedCode.replace(
+                /^\s*(flowchart|graph)(?=\s|$)/i,
+                `$1 ${direction}`
+              );
+            }
+          }
+
+          const config: any = layout === 'elk'
+            ? {
+                startOnLoad: false,
+                theme: theme,
+                securityLevel: 'loose',
+                fontSize: 10,
+                flowchart: {
+                  htmlLabels: true,
+                  padding: 10,
+                  useMaxWidth: true,
+                },
+                layout: 'elk',
+                elk: {
+                  mergeEdges: true,
+                  nodePlacementStrategy: 'SIMPLE',
+                },
+              }
+            : {
+                startOnLoad: false,
+                theme: theme,
+                securityLevel: 'loose',
+                fontSize: 10,
+                flowchart: {
+                  htmlLabels: true,
+                  padding: 10,
+                  nodeSpacing: 30,
+                  rankSpacing: 30,
+                  useMaxWidth: true,
+                },
+              };
 
           mermaid.initialize(config);
 
-          const id = `thumbnail-${diagram.id}-${Date.now()}`;
-          const { svg } = await mermaid.render(id, diagram.mermaid_code);
+          const id = `thumbnail-${diagram.id}-${layout}-${theme}-${direction}-${Date.now()}`;
+          const { svg } = await mermaid.render(id, modifiedCode);
 
           if (containerRef.current && mounted) {
             containerRef.current.innerHTML = svg;

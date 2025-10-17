@@ -23,6 +23,7 @@ export function DiagramEditorPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [currentLayout, setCurrentLayout] = useState<'dagre' | 'elk'>('dagre');
   const [currentTheme, setCurrentTheme] = useState<'default' | 'neutral' | 'dark' | 'forest' | 'base'>('default');
+  const [currentDirection, setCurrentDirection] = useState<'TB' | 'BT' | 'LR' | 'RL'>('TB');
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   useEffect(() => {
@@ -54,6 +55,8 @@ export function DiagramEditorPage() {
       setCurrentLayout((data.layout as 'dagre' | 'elk') || 'dagre');
       // @ts-ignore - Supabase type inference issue
       setCurrentTheme((data.theme as 'default' | 'neutral' | 'dark' | 'forest' | 'base') || 'default');
+      // @ts-ignore - Supabase type inference issue
+      setCurrentDirection((data.direction as 'TB' | 'BT' | 'LR' | 'RL') || 'TB');
     }
   };
 
@@ -69,6 +72,7 @@ export function DiagramEditorPage() {
           mermaid_code: code,
           layout: currentLayout,
           theme: currentTheme,
+          direction: currentDirection,
           updated_at: new Date().toISOString(),
         })
         .eq('id', diagram.id);
@@ -84,6 +88,7 @@ export function DiagramEditorPage() {
           user_prompt: t('editor.manualSave'),
           layout: currentLayout,
           theme: currentTheme,
+          direction: currentDirection,
         } as any)
         .select()
         .single();
@@ -96,6 +101,7 @@ export function DiagramEditorPage() {
         mermaid_code: code,
         layout: currentLayout,
         theme: currentTheme,
+        direction: currentDirection,
         updated_at: new Date().toISOString(),
       });
     } catch (error) {
@@ -131,6 +137,7 @@ export function DiagramEditorPage() {
           mermaid_code: newCode,
           layout: currentLayout,
           theme: currentTheme,
+          direction: currentDirection,
           updated_at: new Date().toISOString(),
         })
         .eq('id', diagram.id);
@@ -145,6 +152,7 @@ export function DiagramEditorPage() {
           ai_response: t('editor.aiGenerated'),
           layout: currentLayout,
           theme: currentTheme,
+          direction: currentDirection,
         } as any)
         .select()
         .single();
@@ -154,6 +162,7 @@ export function DiagramEditorPage() {
         mermaid_code: newCode,
         layout: currentLayout,
         theme: currentTheme,
+        direction: currentDirection,
         updated_at: new Date().toISOString(),
       });
     } catch (error) {
@@ -235,15 +244,17 @@ export function DiagramEditorPage() {
         </div>
 
         {/* 右侧预览区域 - 70% 宽度 */}
-        <div className="w-[70%] bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-          <div className="h-full bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="w-[70%] bg-gradient-to-br from-gray-50 to-gray-100 p-3">
+          <div className="h-full bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
             <MermaidRenderer
               code={code}
               className="h-full"
               initialLayout={currentLayout}
               initialTheme={currentTheme}
+              initialDirection={currentDirection}
               onLayoutChange={setCurrentLayout}
               onThemeChange={setCurrentTheme}
+              onDirectionChange={setCurrentDirection}
             />
           </div>
         </div>

@@ -30,7 +30,7 @@ CREATE TABLE projects (
 );
 
 -- 4. 创建 diagrams 表 (不使用外键)
--- 包含 layout 和 theme 字段用于存储每个流程图的布局和主题配置
+-- 包含 layout、theme 和 direction 字段用于存储每个流程图的布局、主题和方向配置
 CREATE TABLE diagrams (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   project_id UUID NOT NULL,
@@ -38,12 +38,13 @@ CREATE TABLE diagrams (
   mermaid_code TEXT NOT NULL,
   layout TEXT DEFAULT 'dagre',
   theme TEXT DEFAULT 'default',
+  direction TEXT DEFAULT 'TB',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 5. 创建 diagram_history 表 (不使用外键)
--- 包含 layout 和 theme 字段用于存储历史记录时的布局和主题配置
+-- 包含 layout、theme 和 direction 字段用于存储历史记录时的布局、主题和方向配置
 CREATE TABLE diagram_history (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   diagram_id UUID NOT NULL,
@@ -52,6 +53,7 @@ CREATE TABLE diagram_history (
   ai_response TEXT,
   layout TEXT DEFAULT 'dagre',
   theme TEXT DEFAULT 'default',
+  direction TEXT DEFAULT 'TB',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -108,5 +110,3 @@ WHERE layout IS NULL OR theme IS NULL;
 UPDATE diagram_history
 SET layout = 'dagre', theme = 'default'
 WHERE layout IS NULL OR theme IS NULL;
-
-SELECT 'Columns added successfully to both tables!' as status;

@@ -14,11 +14,13 @@ function SafeMermaidRenderer({
   itemId,
   layout = 'dagre',
   theme = 'default',
+  direction = 'TB',
 }: {
   code: string;
   itemId: string;
   layout?: string;
   theme?: string;
+  direction?: string;
 }) {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,8 +45,8 @@ function SafeMermaidRenderer({
           containerRef.current.innerHTML = '';
         }
 
-        // 生成唯一 ID
-        const id = `mermaid-history-${itemId}`;
+        // 生成唯一 ID，包含所有配置参数避免缓存
+        const id = `mermaid-history-${itemId}-${layout}-${theme}-${direction}-${Date.now()}`;
 
         // 根据布局类型配置参数
         const config: any = layout === 'elk'
@@ -107,11 +109,38 @@ function SafeMermaidRenderer({
         // 每次渲染前都重新初始化配置
         mermaid.initialize(config as any);
 
+        // 根据保存的方向修改代码
+        let modifiedCode = code;
+        const flowchartMatch = modifiedCode.match(/^\s*(flowchart|graph)\s+(TB|BT|LR|RL|TD|BR)?/i);
+        if (flowchartMatch) {
+          if (flowchartMatch[2]) {
+            modifiedCode = modifiedCode.replace(
+              /^\s*(flowchart|graph)\s+(TB|BT|LR|RL|TD|BR)?/i,
+              `$1 ${direction}`
+            );
+          } else {
+            modifiedCode = modifiedCode.replace(
+              /^\s*(flowchart|graph)(?=\s|$)/i,
+              `$1 ${direction}`
+            );
+          }
+        }
+
         // 渲染图表
-        const { svg } = await mermaid.render(id, code);
+        const { svg } = await mermaid.render(id, modifiedCode);
 
           if (containerRef.current && mounted) {
             containerRef.current.innerHTML = svg;
+
+            // 确保 SVG 自适应容器
+            const svgElement = containerRef.current.querySelector('svg');
+            if (svgElement) {
+              svgElement.style.maxWidth = '100%';
+              svgElement.style.maxHeight = '100%';
+              svgElement.style.height = 'auto';
+              svgElement.style.width = 'auto';
+            }
+
             setRendered(true);
           }
         } catch (err) {
@@ -135,7 +164,7 @@ function SafeMermaidRenderer({
     return () => {
       mounted = false;
     };
-  }, [code, itemId, layout, theme]);
+  }, [code, itemId, layout, theme, direction]);
 
   if (error) {
     return (
@@ -156,7 +185,14 @@ function SafeMermaidRenderer({
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-600 border-t-transparent"></div>
         </div>
       )}
-      <div ref={containerRef} className="w-full h-full flex items-center justify-center" />
+      <div
+        ref={containerRef}
+        className="w-full h-full flex items-center justify-center"
+        style={{
+          maxWidth: '100%',
+          maxHeight: '100%',
+        }}
+      />
     </div>
   );
 }
@@ -343,15 +379,14 @@ export function HistoryDrawer({ isOpen, onClose, diagramId, onRestore }: History
 
                       {/* 内容展示区域 */}
                       {globalViewMode === 'preview' ? (
-                        <div className="bg-gray-50 rounded-lg p-3 mb-3 overflow-hidden" style={{ height: '600px' }}>
-                          <div className="transform scale-75 origin-top-left" style={{ width: '133.33%', height: '133.33%' }}>
-                            <SafeMermaidRenderer
-                              code={item.mermaid_code}
-                              itemId={item.id}
-                              layout={item.layout}
-                              theme={item.theme}
-                            />
-                          </div>
+                        <div className="bg-gray-50 rounded-lg mb-3 overflow-auto" style={{ height: '400px' }}>
+                          <SafeMermaidRenderer
+                            code={item.mermaid_code}
+                            itemId={item.id}
+                            layout={item.layout}
+                            theme={item.theme}
+                            direction={item.direction}
+                          />
                         </div>
                       ) : (
                         <div className="bg-gray-50 rounded-lg p-3 mb-3 max-h-80 overflow-y-auto">
