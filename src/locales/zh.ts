@@ -38,6 +38,9 @@ export default {
     deleteProjectError: '删除项目失败',
     createProjectError: '创建项目失败',
     updatedAt: '更新于',
+    clickToEdit: '点击编辑项目名称',
+    nameSaved: '项目名称保存成功',
+    nameSaveError: '项目名称保存失败',
   },
   diagram: {
     diagramList: '流程图列表',
@@ -52,6 +55,8 @@ export default {
     descriptionPlaceholder: '描述你想要的流程图，例如：用户登录流程',
     generating: '生成中...',
     aiGenerate: 'AI 生成',
+    createEmpty: '创建空流程图',
+    untitledDiagram: '未命名流程图',
     previewError: '预览加载失败',
   },
   editor: {
@@ -79,6 +84,9 @@ export default {
     directionBT: '从下到上',
     directionLR: '从左到右',
     directionRL: '从右到左',
+    clickToEdit: '点击编辑标题',
+    titleSaved: '标题保存成功',
+    titleSaveError: '标题保存失败',
   },
   renderer: {
     renderError: '渲染失败',

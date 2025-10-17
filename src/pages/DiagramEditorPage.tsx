@@ -25,6 +25,8 @@ export function DiagramEditorPage() {
   const [currentTheme, setCurrentTheme] = useState<'default' | 'neutral' | 'dark' | 'forest' | 'base'>('default');
   const [currentDirection, setCurrentDirection] = useState<'TB' | 'BT' | 'LR' | 'RL'>('TB');
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState('');
 
   useEffect(() => {
     if (diagramId) {
@@ -57,6 +59,8 @@ export function DiagramEditorPage() {
       setCurrentTheme((data.theme as 'default' | 'neutral' | 'dark' | 'forest' | 'base') || 'default');
       // @ts-ignore - Supabase type inference issue
       setCurrentDirection((data.direction as 'TB' | 'BT' | 'LR' | 'RL') || 'TB');
+      // @ts-ignore - Supabase type inference issue
+      setEditedTitle(data.name);
     }
   };
 
@@ -120,6 +124,40 @@ export function DiagramEditorPage() {
     a.download = `${diagram?.name || 'diagram'}.mmd`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleTitleSave = async () => {
+    if (!diagram || !editedTitle.trim()) {
+      setIsEditingTitle(false);
+      setEditedTitle(diagram?.name || '');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('diagrams')
+        // @ts-ignore - Supabase type inference issue
+        .update({
+          name: editedTitle.trim(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', diagram.id);
+
+      if (error) throw error;
+
+      // 更新本地状态
+      setDiagram({
+        ...diagram,
+        name: editedTitle.trim(),
+      });
+      setIsEditingTitle(false);
+      setToast({ message: t('editor.titleSaved'), type: 'success' });
+    } catch (error) {
+      console.error('Save title error:', error);
+      setToast({ message: t('editor.titleSaveError'), type: 'error' });
+      setEditedTitle(diagram.name);
+      setIsEditingTitle(false);
+    }
   };
 
   const handleAIRefine = async (prompt: string) => {
@@ -197,9 +235,32 @@ export function DiagramEditorPage() {
           >
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
-          <h2 className="text-lg font-semibold text-gray-800">
-            {diagram.name}
-          </h2>
+          {isEditingTitle ? (
+            <input
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onBlur={handleTitleSave}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleTitleSave();
+                } else if (e.key === 'Escape') {
+                  setIsEditingTitle(false);
+                  setEditedTitle(diagram.name);
+                }
+              }}
+              className="text-lg font-semibold text-gray-800 bg-white border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoFocus
+            />
+          ) : (
+            <h2
+              className="text-lg font-semibold text-gray-800 cursor-pointer hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-gray-50"
+              onClick={() => setIsEditingTitle(true)}
+              title={t('editor.clickToEdit')}
+            >
+              {diagram.name}
+            </h2>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button

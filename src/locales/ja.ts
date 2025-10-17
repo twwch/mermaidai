@@ -38,6 +38,9 @@ export default {
     deleteProjectError: 'プロジェクトの削除に失敗しました',
     createProjectError: 'プロジェクトの作成に失敗しました',
     updatedAt: '更新日時',
+    clickToEdit: 'クリックしてプロジェクト名を編集',
+    nameSaved: 'プロジェクト名を保存しました',
+    nameSaveError: 'プロジェクト名の保存に失敗しました',
   },
   diagram: {
     diagramList: '図のリスト',
@@ -52,6 +55,8 @@ export default {
     descriptionPlaceholder: '図の説明を入力してください（例：ユーザーログインフロー）',
     generating: '生成中...',
     aiGenerate: 'AI生成',
+    createEmpty: '空の図を作成',
+    untitledDiagram: '無題の図',
     previewError: 'プレビューの読み込みに失敗しました',
   },
   editor: {
@@ -79,6 +84,9 @@ export default {
     directionBT: '下から上へ',
     directionLR: '左から右へ',
     directionRL: '右から左へ',
+    clickToEdit: 'クリックしてタイトルを編集',
+    titleSaved: 'タイトルを保存しました',
+    titleSaveError: 'タイトルの保存に失敗しました',
   },
   renderer: {
     renderError: 'レンダリング失敗',

@@ -38,6 +38,9 @@ export default {
     deleteProjectError: 'Failed to delete project',
     createProjectError: 'Failed to create project',
     updatedAt: 'Updated',
+    clickToEdit: 'Click to edit project name',
+    nameSaved: 'Project name saved successfully',
+    nameSaveError: 'Failed to save project name',
   },
   diagram: {
     diagramList: 'Diagram List',
@@ -52,6 +55,8 @@ export default {
     descriptionPlaceholder: 'Describe your diagram, e.g.: user login flow',
     generating: 'Generating...',
     aiGenerate: 'AI Generate',
+    createEmpty: 'Create Empty',
+    untitledDiagram: 'Untitled Diagram',
     previewError: 'Preview failed to load',
   },
   editor: {
@@ -79,6 +84,9 @@ export default {
     directionBT: 'Bottom to top',
     directionLR: 'Left to right',
     directionRL: 'Right to left',
+    clickToEdit: 'Click to edit title',
+    titleSaved: 'Title saved successfully',
+    titleSaveError: 'Failed to save title',
   },
   renderer: {
     renderError: 'Render failed',

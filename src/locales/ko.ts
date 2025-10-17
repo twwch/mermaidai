@@ -38,6 +38,9 @@ export default {
     deleteProjectError: '프로젝트 삭제 실패',
     createProjectError: '프로젝트 생성 실패',
     updatedAt: '업데이트 날짜',
+    clickToEdit: '클릭하여 프로젝트 이름 편집',
+    nameSaved: '프로젝트 이름이 저장되었습니다',
+    nameSaveError: '프로젝트 이름 저장 실패',
   },
   diagram: {
     diagramList: '다이어그램 목록',
@@ -52,6 +55,8 @@ export default {
     descriptionPlaceholder: '다이어그램을 설명하세요 (예: 사용자 로그인 플로우)',
     generating: '생성 중...',
     aiGenerate: 'AI 생성',
+    createEmpty: '빈 다이어그램 만들기',
+    untitledDiagram: '제목 없는 다이어그램',
     previewError: '미리보기 로드 실패',
   },
   editor: {
@@ -79,6 +84,9 @@ export default {
     directionBT: '아래에서 위로',
     directionLR: '왼쪽에서 오른쪽으로',
     directionRL: '오른쪽에서 왼쪽으로',
+    clickToEdit: '클릭하여 제목 편집',
+    titleSaved: '제목이 저장되었습니다',
+    titleSaveError: '제목 저장 실패',
   },
   renderer: {
     renderError: '렌더링 실패',

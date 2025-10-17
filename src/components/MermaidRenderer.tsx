@@ -564,6 +564,7 @@ export function MermaidRenderer({
                 setShowLayoutMenu(!showLayoutMenu);
                 setShowThemeMenu(false);
                 setShowExportMenu(false);
+                setShowDirectionMenu(false);
               }}
               className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors"
               title="切换布局"
@@ -613,6 +614,7 @@ export function MermaidRenderer({
                 setShowThemeMenu(!showThemeMenu);
                 setShowLayoutMenu(false);
                 setShowExportMenu(false);
+                setShowDirectionMenu(false);
               }}
               className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors"
               title="切换主题"
@@ -665,6 +667,7 @@ export function MermaidRenderer({
                 setShowExportMenu(!showExportMenu);
                 setShowLayoutMenu(false);
                 setShowThemeMenu(false);
+                setShowDirectionMenu(false);
               }}
               className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors"
               title="导出"

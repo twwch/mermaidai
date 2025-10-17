@@ -36,6 +36,8 @@ export function DiagramList() {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 10;
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [isEditingProjectName, setIsEditingProjectName] = useState(false);
+  const [editedProjectName, setEditedProjectName] = useState('');
 
   useEffect(() => {
     if (projectId) {
@@ -79,6 +81,8 @@ export function DiagramList() {
     }
 
     setProject(data);
+    // @ts-ignore - Supabase type inference issue
+    setEditedProjectName(data?.name || '');
   };
 
   const loadDiagrams = async (pageNum: number = 0, append: boolean = false) => {
@@ -155,6 +159,80 @@ export function DiagramList() {
     }
   };
 
+  const handleCreateEmptyDiagram = async () => {
+    if (!projectId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('diagrams')
+        .insert({
+          project_id: projectId,
+          name: t('diagram.untitledDiagram'),
+          mermaid_code: '',
+        } as any)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        // 添加历史记录
+        // @ts-ignore
+        await supabase.from('diagram_history').insert({
+          // @ts-ignore
+          diagram_id: data.id,
+          mermaid_code: '',
+          user_prompt: null,
+          ai_response: null,
+        });
+
+        setDiagrams([data, ...diagrams]);
+        setIsCreating(false);
+
+        // 直接跳转到编辑页面
+        // @ts-ignore - Supabase type inference issue
+        navigate(`/project/${projectId}/diagram/${data.id}`);
+      }
+    } catch (error) {
+      console.error('Create empty diagram error:', error);
+      setToast({ message: t('diagram.createDiagramError'), type: 'error' });
+    }
+  };
+
+  const handleProjectNameSave = async () => {
+    if (!project || !editedProjectName.trim()) {
+      setIsEditingProjectName(false);
+      setEditedProjectName(project?.name || '');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        // @ts-ignore - Supabase type inference issue
+        .update({
+          name: editedProjectName.trim(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', project.id);
+
+      if (error) throw error;
+
+      // 更新本地状态
+      setProject({
+        ...project,
+        name: editedProjectName.trim(),
+      });
+      setIsEditingProjectName(false);
+      setToast({ message: t('project.nameSaved'), type: 'success' });
+    } catch (error) {
+      console.error('Save project name error:', error);
+      setToast({ message: t('project.nameSaveError'), type: 'error' });
+      setEditedProjectName(project.name);
+      setIsEditingProjectName(false);
+    }
+  };
+
   const handleDeleteDiagram = async (diagramId: string, diagramName: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setDeleteConfirm({ isOpen: true, diagramId, diagramName });
@@ -200,7 +278,32 @@ export function DiagramList() {
                 <ArrowLeft className="w-5 h-5 text-gray-700" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{project?.name || '项目'}</h1>
+                {isEditingProjectName ? (
+                  <input
+                    type="text"
+                    value={editedProjectName}
+                    onChange={(e) => setEditedProjectName(e.target.value)}
+                    onBlur={handleProjectNameSave}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleProjectNameSave();
+                      } else if (e.key === 'Escape') {
+                        setIsEditingProjectName(false);
+                        setEditedProjectName(project?.name || '');
+                      }
+                    }}
+                    className="text-2xl font-bold text-gray-900 bg-white border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    autoFocus
+                  />
+                ) : (
+                  <h1
+                    className="text-2xl font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-gray-50"
+                    onClick={() => setIsEditingProjectName(true)}
+                    title={t('project.clickToEdit')}
+                  >
+                    {project?.name || '项目'}
+                  </h1>
+                )}
                 <p className="text-sm text-gray-600 mt-1">{t('diagram.diagramList')}</p>
               </div>
               <LanguageSwitcher />
@@ -247,6 +350,14 @@ export function DiagramList() {
                       {t('diagram.aiGenerate')}
                     </>
                   )}
+                </button>
+                <button
+                  onClick={handleCreateEmptyDiagram}
+                  disabled={isGenerating}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  <FilePlus className="w-4 h-4" />
+                  {t('diagram.createEmpty')}
                 </button>
                 <button
                   onClick={() => {
