@@ -644,12 +644,28 @@ function DiagramCard({
               svgElement.style.height = '100%';
             }
             setIsRendered(true);
+
+            // 清理 mermaid 可能创建的任何错误元素
+            const mermaidErrorDivs = document.querySelectorAll('[id^="d"]');
+            mermaidErrorDivs.forEach(div => {
+              if (div.textContent?.includes('Syntax error') || div.textContent?.includes('mermaid version')) {
+                div.remove();
+              }
+            });
           }
         } catch (error) {
           console.error('Thumbnail render error:', error);
           if (mounted) {
             setHasError(true);
           }
+
+          // 清理 mermaid 在渲染失败时创建的错误元素
+          const mermaidErrorDivs = document.querySelectorAll('[id^="d"]');
+          mermaidErrorDivs.forEach(div => {
+            if (div.textContent?.includes('Syntax error') || div.textContent?.includes('mermaid version')) {
+              div.remove();
+            }
+          });
         }
       });
     };
