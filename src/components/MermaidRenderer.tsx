@@ -281,7 +281,11 @@ export function MermaidRenderer({
           // 初始化 pan-zoom
           const svgElement = containerRef.current.querySelector('svg');
           if (svgElement) {
-            // 关键：直接设置 SVG 尺寸为 100%，与缩略图一致的做法
+            // 移除 Mermaid 添加的限制性样式
+            svgElement.style.removeProperty('max-width');
+            svgElement.style.removeProperty('overflow');
+
+            // 设置 SVG 尺寸为 100%，确保填充容器
             svgElement.style.width = '100%';
             svgElement.style.height = '100%';
 

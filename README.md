@@ -2,7 +2,7 @@
 
 基于 AI 技术的 Mermaid 流程图创建和编辑工具，支持通过自然语言描述生成专业的流程图。
 
-![Version](https://img.shields.io/badge/version-2.5.3-blue)
+![Version](https://img.shields.io/badge/version-2.5.4-blue)
 ![Node](https://img.shields.io/badge/node-22+-green)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -292,6 +292,24 @@ mermaidai/
 
 ## 🔄 版本更新
 
+### v2.5.4 (2025-10-28)
+
+**渲染修复：**
+- 🔧 **ELK 布局缩放修复**：修复 ELK 布局下缩放时背景框宽度显示不完整的问题
+  - 移除 Mermaid 自动添加的 `max-width` 限制性样式
+  - 移除 `overflow: hidden` 样式，防止内容裁剪
+  - 确保 SVG 元素在缩放时能够正确填充容器
+  - 所有布局（Dagre 和 ELK）下缩放功能正常工作
+- 🎨 **SVG 样式优化**：改进 SVG 元素的样式处理
+  - 使用 `removeProperty()` 方法清除限制性样式
+  - 保持 `width: 100%` 和 `height: 100%` 设置
+  - 确保与 svg-pan-zoom 的兼容性
+
+**用户体验改进：**
+- ✅ 缩放和平移操作更加流畅
+- ✅ 图表内容完整显示，无裁剪问题
+- ✅ 背景框始终填充整个可视区域
+
 ### v2.5.3 (2025-10-17)
 
 **AI 生成引擎重大优化：**
@@ -566,8 +584,8 @@ MIT License
 
 ---
 
-**当前版本**：v2.5.3
-**最后更新**：2025-10-17
+**当前版本**：v2.5.4
+**最后更新**：2025-10-28
 **开发状态**：✅ 生产就绪
 **构建状态**：✅ 通过所有测试
 **语言支持**：🌍 中文 | English | 日本語 | 한国어
